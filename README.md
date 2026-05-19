@@ -16,8 +16,13 @@ A weekly AI agent that scans PM/AI product job postings in Pune, extracts common
 
 ## Documentation
 
+### Anthropic SDK Implementation
 - [System Design](DESIGN.md) — architecture, components, tech stack, agent flow
 - [Visual Architecture](ARCHITECTURE.md) — Mermaid diagrams: system flow, scraper, theme pipeline, resume generation, sequence diagram, data model
+
+### OpenClaw Implementation (Alternate)
+- [OpenClaw Design](DESIGN_OPENCLAW.md) — Lobster YAML workflow, MCPorter integrations, memory architecture, SDK vs OpenClaw comparison
+- [OpenClaw Architecture](ARCHITECTURE_OPENCLAW.md) — Mermaid diagrams: Gateway/TaskFlow, Lobster steps, MCP map, memory layout, sequence diagram
 
 ## Status
 
