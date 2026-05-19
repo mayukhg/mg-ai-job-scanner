@@ -168,13 +168,25 @@ postings_analyzed: 34
 
 ## MCP Integrations via MCPorter
 
+> **MCP package selection is based on a live GitHub issue tracker audit (May 2026).**
+> Not all MCP packages are equal — see findings below before swapping packages.
+
 ```
 MCPorter (OpenClaw MCP bridge)
-├── playwright-mcp     → job board scraping (LinkedIn, Naukri, Indeed)
-├── dropbox-mcp        → file upload + shared link generation
-├── gmail-mcp          → send email with attachment
-└── github-mcp         → (optional) commit theme reports to repo
+├── playwright-mcp              → job board scraping (LinkedIn, Naukri, Indeed)
+├── amgadabdelhafez/dbx-mcp-server  → file upload + shared link generation  ✅ recommended
+├── shinzo-labs/gmail-mcp       → send email with attachment                 ✅ recommended
+└── github-mcp                  → (optional) commit theme reports to repo
 ```
+
+### MCP Package Audit Results
+
+| MCP | Package | Status | Finding |
+|---|---|---|---|
+| Dropbox | `amgadabdelhafez/dbx-mcp-server` | ✅ Use this | Only 4 issues ever; no OAuth problems; bugs closed |
+| Gmail | `GongRzhe/Gmail-MCP-Server` | ❌ Avoid | Flagged unmaintained Mar 2026; `send_email` broken from SDK; OAuth server issue open |
+| Gmail | `shinzo-labs/gmail-mcp` | ✅ Use this | Actively maintained; cleaner codebase; no OAuth token refresh issues |
+| Gmail (alt) | `j3k0/mcp-google-workspace` | ✅ Fallback | Covers Gmail + Calendar together; good alternative |
 
 Each MCP is configured in `~/.openclaw/config.yaml`:
 
@@ -184,18 +196,23 @@ mcp_servers:
     command: npx
     args: ["@playwright/mcp@latest"]
 
+  # Dropbox: use amgadabdelhafez/dbx-mcp-server (audited May 2026 — no OAuth issues)
   dropbox:
     command: npx
-    args: ["dropbox-mcp"]
+    args: ["dbx-mcp-server"]
     env:
       DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY }}
-      DROPBOX_REFRESH_TOKEN: ${{ secrets.DROPBOX_REFRESH_TOKEN }}
+      DROPBOX_APP_SECRET: ${{ secrets.DROPBOX_APP_SECRET }}
+      DROPBOX_REDIRECT_URI: ${{ secrets.DROPBOX_REDIRECT_URI }}
+      TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY }}
 
+  # Gmail: use shinzo-labs/gmail-mcp (NOT GongRzhe/Gmail-MCP-Server — unmaintained)
   gmail:
     command: npx
-    args: ["gmail-mcp"]
+    args: ["@shinzolabs/gmail-mcp"]
     env:
       GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
+      GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
       GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
 ```
 
@@ -269,10 +286,13 @@ mg-ai-job-scanner/
 | Secret | Used By | How to Set |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | LLM calls (Claude) | `openclaw secrets set ANTHROPIC_API_KEY` |
-| `DROPBOX_APP_KEY` | dropbox-mcp | `openclaw secrets set DROPBOX_APP_KEY` |
-| `DROPBOX_REFRESH_TOKEN` | dropbox-mcp | `openclaw secrets set DROPBOX_REFRESH_TOKEN` |
-| `GMAIL_CLIENT_ID` | gmail-mcp | `openclaw secrets set GMAIL_CLIENT_ID` |
-| `GMAIL_REFRESH_TOKEN` | gmail-mcp | `openclaw secrets set GMAIL_REFRESH_TOKEN` |
+| `DROPBOX_APP_KEY` | `dbx-mcp-server` | `openclaw secrets set DROPBOX_APP_KEY` |
+| `DROPBOX_APP_SECRET` | `dbx-mcp-server` | `openclaw secrets set DROPBOX_APP_SECRET` |
+| `DROPBOX_REDIRECT_URI` | `dbx-mcp-server` | `openclaw secrets set DROPBOX_REDIRECT_URI` |
+| `TOKEN_ENCRYPTION_KEY` | `dbx-mcp-server` | `openclaw secrets set TOKEN_ENCRYPTION_KEY` |
+| `GMAIL_CLIENT_ID` | `@shinzolabs/gmail-mcp` | `openclaw secrets set GMAIL_CLIENT_ID` |
+| `GMAIL_CLIENT_SECRET` | `@shinzolabs/gmail-mcp` | `openclaw secrets set GMAIL_CLIENT_SECRET` |
+| `GMAIL_REFRESH_TOKEN` | `@shinzolabs/gmail-mcp` | `openclaw secrets set GMAIL_REFRESH_TOKEN` |
 
 > All secrets are stored locally in OpenClaw's encrypted secret store —
 > never committed to git or sent to a cloud service.

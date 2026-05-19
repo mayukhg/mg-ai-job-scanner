@@ -30,8 +30,8 @@ flowchart TD
 
     subgraph MCPORTER["MCPorter (MCP Bridge)"]
         MCP1[playwright-mcp\nJob Scraping]
-        MCP2[dropbox-mcp\nFile Storage]
-        MCP3[gmail-mcp\nEmail Delivery]
+        MCP2[dbx-mcp-server ✅\nFile Storage]
+        MCP3[shinzo-labs/gmail-mcp ✅\nEmail Delivery]
     end
 
     subgraph MEMORY["Memory Store\n~/.openclaw/memory/"]
@@ -95,11 +95,11 @@ flowchart TB
         end
 
         subgraph STORE["Storage"]
-            DB["dropbox-mcp\nnpx dropbox-mcp"]
+            DB["dbx-mcp-server ✅\namgadabdelhafez/dbx-mcp-server"]
         end
 
         subgraph COMM["Communication"]
-            GM["gmail-mcp\nnpx gmail-mcp"]
+            GM["@shinzolabs/gmail-mcp ✅\n(NOT GongRzhe — unmaintained)"]
         end
     end
 
@@ -160,8 +160,8 @@ sequenceDiagram
     participant PW  as 🌐 playwright-mcp
     participant CL  as 🧠 Claude API
     participant MEM as 💾 Memory Store
-    participant DP  as ☁️ dropbox-mcp
-    participant GM  as 📧 gmail-mcp
+    participant DP  as ☁️ dbx-mcp-server
+    participant GM  as 📧 shinzo-labs/gmail-mcp
 
     PE->>GW: fire(weekly_job_scan, week_date)
     GW->>LB: load_workflow(weekly_job_scan.yaml)
@@ -199,7 +199,7 @@ flowchart TD
         direction TB
         GW2["gateway:\n  port: 3000\n  log_level: info"]
         LLM2["models:\n  default: claude-sonnet-4-6\n  fallback: ollama/llama3"]
-        MCP2["mcp_servers:\n  playwright: ...\n  dropbox: ...\n  gmail: ..."]
+        MCP2["mcp_servers:\n  playwright: @playwright/mcp\n  dropbox: dbx-mcp-server ✅\n  gmail: @shinzolabs/gmail-mcp ✅"]
         MEM2["memory:\n  path: ~/.openclaw/memory\n  vector_backend: ollama"]
     end
 
