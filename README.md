@@ -17,6 +17,7 @@ A weekly AI agent that scans PM/AI product job postings in Pune, extracts common
 ## Documentation
 
 - [System Design](DESIGN.md) — architecture, components, tech stack, agent flow
+- [Visual Architecture](ARCHITECTURE.md) — Mermaid diagrams: system flow, scraper, theme pipeline, resume generation, sequence diagram, data model
 
 ## Status
 
