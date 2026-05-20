@@ -1,0 +1,55 @@
+# config/settings.yaml
+# =====================================================================
+# mg-ai-job-scanner — System Settings & Service Interoperability Config
+# =====================================================================
+
+# 1. Model Configuration (Easily swap LLM providers and specific models)
+model:
+  # Available providers: "gemini" | "anthropic" | "ollama" | "openai"
+  default_provider: "gemini"
+  
+  # Target models for specific tasks
+  theme_extractor:
+    provider: "gemini"
+    name: "gemini-2.0-pro-exp"         # Huge context window, highly cost-effective for large JD ingestion
+    temperature: 0.1
+    
+  resume_writer:
+    provider: "anthropic"
+    name: "claude-3-5-sonnet"          # Exceptional professional copywriting and tone preservation
+    temperature: 0.3
+
+# 2. Scraper Configuration (Toggle platforms and managed scraping tools)
+scraper:
+  # Available providers: "apify" | "serpapi" | "custom_mock"
+  provider: "apify"
+  
+  # Scraper targets and crawler search parameters
+  search:
+    location: "Pune, India"
+    date_posted_days: 7
+    titles:
+      - "AI Product Manager"
+      - "Agentic AI Product Manager"
+      - "Director of Product Management"
+      - "Senior Director of Product Management"
+      - "VP of Product Management"
+      - "Vice President of Product"
+
+# 3. Storage & Persistence Configuration
+storage:
+  # Local temp database path (synced round-trip with Dropbox)
+  local_db_path: "data/store/themes.db"
+  
+  # Dropbox cloud directory structure
+  dropbox:
+    target_folder: "/Resumes/Weekly"
+    base_resume_path: "/Resumes/Templates/Resume_Base.docx"
+    theme_history_folder: "/Resumes/Themes"
+
+# 4. Delivery & Email Configuration
+email:
+  recipient: "mayukhg@gmail.com"
+  subject_template: "Updated resume for week of {date}"
+  smtp_server: "smtp.gmail.com"
+  smtp_port: 587
