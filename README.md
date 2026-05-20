@@ -24,6 +24,10 @@ A weekly AI agent that scans PM/AI product job postings in Pune, extracts common
 - [OpenClaw Design](DESIGN_OPENCLAW.md) — Lobster YAML workflow, MCPorter integrations, memory architecture, SDK vs OpenClaw comparison
 - [OpenClaw Architecture](ARCHITECTURE_OPENCLAW.md) — Mermaid diagrams: Gateway/TaskFlow, Lobster steps, MCP map, memory layout, sequence diagram
 
+### Hybrid GHA + Python Implementation (Option 3 — Recommended)
+- [Hybrid Design](DESIGN_HYBRID.md) — GHA runtime, python-docx XML manipulation, Apify integration, secret auto-refresh
+- [Hybrid Architecture](ARCHITECTURE_HYBRID.md) — Mermaid diagrams: cloud system flow, ingestion pipeline, docx in-place edits, sequence flow
+
 ## Status
 
 > Under construction — see [DESIGN.md](DESIGN.md) for the full plan.
