@@ -133,10 +133,17 @@ Agent Mock Interviewer retrieves the current week's trending themes and tailored
 ### 5.5 Programmatic Proof-of-Work Scaffolding
 Agent Portfolio Architect addresses the ultimate career barrier: showing, not just telling. It designs a proof-of-concept project demonstrating trending technologies, automatically scaffolds directory hierarchies (source folders, unit tests, YAML GitHub Actions CI scripts, requirements lists), writes standard execution templates, generates a premium README detailing the architecture, and prepares it to be committed and published directly to the user's GitHub.
 
-### 5.6 Interactive Onboarding & Defensive UX
-A sophisticated AI ecosystem requires a seamless configuration entrypoint. The engine features an interactive CLI onboarding wizard (`onboard.py`) that serves as a secure, step-by-step bootstrapper. Following **Defensive UX** design principles, the wizard separates standard system preferences (written directly to `config/settings.yaml`) from sensitive user access keys (Google Gemini API Keys, GitHub PATs, Dropbox sync tokens) which are saved to a git-ignored, local `.env` file. This eliminates the risk of credential leakage while enabling rapid, zero-friction local or serverless deployment.
+### 5.6 Interactive Onboarding Webpage & Defensive UX
+A sophisticated multi-agent AI ecosystem requires an intuitive, professional gateway. The engine features an **Interactive Onboarding Webpage & Dashboard Portal** designed to seamlessly bootstrap user environments. Through a responsive visual wizard, users can:
+* **Select Scan Frequencies**: Choose between *Weekly*, *Monthly*, or *Quarterly* execution cadences.
+* **Customize Scraper Targets**: Toggle job boards (Apify, SerpApi, custom hooks) and define target search parameters.
+* **Wire Alerts & Integrations**: Input their notification email and link Google/NotebookLM upskilling preferences.
+* **Enforce Secret Isolation**: Safely supply API keys (Gemini, GitHub PAT, Dropbox) without plaintext risks.
+
+Following strict **Defensive UX** engineering principles, the onboarding webpage processes these front-end inputs and maps them securely. Standard preferences are committed directly to `config/settings.yaml`, while sensitive access tokens are isolated inside a local git-ignored `.env` file. This prevents accidental credential leakage on GitHub while ensuring a friction-free setup for both local developers and serverless environments.
 
 ---
+
 
 
 ## 6. Alignment with Agentic AI PM Competencies
