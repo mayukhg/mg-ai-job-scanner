@@ -114,6 +114,9 @@ sequenceDiagram
     PY->>OATH: refresh_access_tokens(secrets)
     OATH-->>PY: Dropbox & Gmail fresh_access_tokens
 
+    PY->>DB: download(themes.db)
+    DB-->>PY: themes.db (local SQLite cache)
+
     PY->>DB: download(base_resume.docx)
     DB-->>PY: base_resume.docx (binary)
 
@@ -122,6 +125,9 @@ sequenceDiagram
 
     PY->>DB: upload(Resume_WeekOf_DATE.docx, fresh_token)
     DB-->>PY: shared_link
+
+    PY->>DB: upload(updated themes.db, fresh_token)
+    DB-->>PY: upload completed ✓
 
     PY->>GM: send_smtp_email(to, subject, body_summary, attachment, fresh_token)
     GM-->>PY: email sent successfully

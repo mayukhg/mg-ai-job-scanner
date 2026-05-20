@@ -80,6 +80,13 @@ MODEL_NAME = "gemini-2.0-pro-exp"  # or "claude-3-5-sonnet"
   3. The API client obtains a fresh, short-lived `access_token` valid for 3600 seconds.
   4. Executed completely headlessly without the risk of community MCP version crashes.
 
+### 5. Database Persistence Layer (Dropbox Round-Trip Sync)
+* **Strategy**: Overcomes the stateless, ephemeral nature of GitHub Actions runner VMs by establishing a reliable state-sync lifecycle with Dropbox.
+* **Mechanism**:
+  1. **Boot Hook**: At startup, the Python script uses the Dropbox API to check for an existing `themes.db` inside `/Themes/themes.db`. If found, it downloads the database file to the runner's local container directory `data/store/themes.db`. If it does not exist, the script initializes a new local SQLite database file with the target schemas.
+  2. **Processing**: The orchestrator runs the scraping and LLM analysis pipelines, writing the weekly theme snapshots locally to `data/store/themes.db`.
+  3. **Teardown Hook**: Upon successful completion of all stages, the script uploads the updated local `themes.db` back to Dropbox, safely overwriting the cloud `/Themes/themes.db` location to preserve history.
+
 ---
 
 ## Tech Stack
