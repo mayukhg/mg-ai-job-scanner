@@ -16,6 +16,9 @@ A weekly AI agent that scans PM/AI product job postings in Pune, extracts common
 
 ## Documentation
 
+### Core Project Pitch
+- [Product & Technical Pitch](PITCH.md) — Establishes the vision, system engineering trade-offs, and product decisions (e.g., Build vs. Buy, Defensive UX, and State persistence) directly aligning with **Agentic AI Product Manager** competencies, alongside the future NotebookLM upskilling roadmap.
+
 ### Anthropic SDK Implementation
 - [System Design](DESIGN.md) — architecture, components, tech stack, agent flow
 - [Visual Architecture](ARCHITECTURE.md) — Mermaid diagrams: system flow, scraper, theme pipeline, resume generation, sequence diagram, data model
