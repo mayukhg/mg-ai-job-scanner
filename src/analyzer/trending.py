@@ -55,6 +55,45 @@ class TrendStorageManager:
                     FOREIGN KEY(topic_name) REFERENCES trending_topics(topic_name)
                 );
             """)
+            
+            # 3. Create stealth_opportunities table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS stealth_opportunities (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    company_name TEXT NOT NULL,
+                    job_title TEXT NOT NULL,
+                    job_url TEXT UNIQUE NOT NULL,
+                    raw_payload TEXT,
+                    is_alerted INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
+            
+            # 4. Create mock_interviews table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS mock_interviews (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    week_identifier TEXT NOT NULL,
+                    interview_type TEXT NOT NULL,
+                    target_skills TEXT NOT NULL,
+                    questionnaire_json TEXT NOT NULL,
+                    scorecard_path TEXT,
+                    overall_readiness_score REAL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
+            
+            # 5. Create portfolio_projects table
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS portfolio_projects (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    project_name TEXT UNIQUE NOT NULL,
+                    tech_stack TEXT NOT NULL,
+                    local_path TEXT NOT NULL,
+                    github_repo_url TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
             conn.commit()
 
     def generate_semantic_key(self, topic: str) -> str:
@@ -140,3 +179,78 @@ class TrendStorageManager:
             except sqlite3.IntegrityError as e:
                 logger.error(f"Failed to record notebook for '{topic_name}': {e}")
                 return False
+
+    def record_stealth_opportunity(
+        self, 
+        company_name: str, 
+        job_title: str, 
+        job_url: str, 
+        raw_payload: str = None
+    ) -> bool:
+        """Records a stealth job opportunity discovered from Greenhouse or Lever."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute("""
+                    INSERT INTO stealth_opportunities 
+                    (company_name, job_title, job_url, raw_payload)
+                    VALUES (?, ?, ?, ?)
+                """, (company_name, job_title, job_url, raw_payload))
+                conn.commit()
+                logger.info(f"Persisted stealth opportunity: '{job_title}' at {company_name}")
+                return True
+            except sqlite3.IntegrityError:
+                logger.debug(f"Stealth job URL '{job_url}' already indexed. Skipping.")
+                return False
+
+    def record_mock_interview(
+        self, 
+        week_identifier: str, 
+        interview_type: str, 
+        target_skills: List[str], 
+        questionnaire: Dict[str, Any], 
+        scorecard_path: str = None, 
+        readiness_score: float = None
+    ) -> bool:
+        """Persists details of generated mock interviews and candidate scorecards."""
+        skills_str = ", ".join(target_skills)
+        questionnaire_str = json.dumps(questionnaire)
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute("""
+                    INSERT INTO mock_interviews 
+                    (week_identifier, interview_type, target_skills, questionnaire_json, scorecard_path, overall_readiness_score)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (week_identifier, interview_type, skills_str, questionnaire_str, scorecard_path, readiness_score))
+                conn.commit()
+                logger.info(f"Persisted mock interview scorecard for type: '{interview_type}'")
+                return True
+            except Exception as e:
+                logger.error(f"Failed to record mock interview scorecard: {e}")
+                return False
+
+    def record_portfolio_project(
+        self, 
+        project_name: str, 
+        tech_stack: List[str], 
+        local_path: str, 
+        github_repo_url: str = None
+    ) -> bool:
+        """Persists details of scaffolded open-source proof-of-concept projects."""
+        tech_stack_str = ", ".join(tech_stack)
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            try:
+                cursor.execute("""
+                    INSERT INTO portfolio_projects 
+                    (project_name, tech_stack, local_path, github_repo_url)
+                    VALUES (?, ?, ?, ?)
+                """, (project_name, tech_stack_str, local_path, github_repo_url))
+                conn.commit()
+                logger.info(f"Persisted portfolio project: '{project_name}'")
+                return True
+            except sqlite3.IntegrityError:
+                logger.debug(f"Portfolio project '{project_name}' already registered.")
+                return False
+

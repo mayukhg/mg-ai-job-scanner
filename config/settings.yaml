@@ -53,3 +53,32 @@ email:
   subject_template: "Updated resume for week of {date}"
   smtp_server: "smtp.gmail.com"
   smtp_port: 587
+
+# 5. Opportunity Watchdog (Stealth Job Scraper) Configuration
+watchdog:
+  target_companies:
+    - "Anthropic"
+    - "OpenAI"
+    - "Cognition"
+    - "Perplexity"
+    - "LangChain"
+  ats_providers:
+    - "greenhouse"
+    - "lever"
+  check_frequency_days: 7
+
+# 6. Agent Mock Interviewer (Interview Coach) Configuration
+interviewer:
+  default_difficulty: "hard"
+  interview_types:
+    - "system_design"
+    - "behavioral"
+    - "technical_architecture"
+  scorecard_storage_path: "data/interviews/scorecards"
+
+# 7. Agent Portfolio Architect (Open-Source Project Scaffolder) Configuration
+portfolio:
+  output_base_dir: "data/portfolio/scaffolds"
+  git_push_enabled: false
+  default_license: "MIT"
+

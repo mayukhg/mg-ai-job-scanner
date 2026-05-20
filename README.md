@@ -1,18 +1,19 @@
-# mg-ai-job-scanner
+# Career Intelligence Engine
 
-A weekly AI agent that scans PM/AI product job postings in Pune, extracts common themes, and generates a tailored resume — automatically saved to Dropbox and emailed every Monday.
+A serverless multi-agent ecosystem that automatically monitors job markets, scrapes stealth opportunities, tunes professional resumes, conducts interactive upskilling and mock interview loops, and scaffolds proof-of-work project repositories.
 
 ## Original Requirements
 
-> I want to create an AI agent with the described functionality, first create me a system design for this, here are my requirement - On a weekly basis scan through all the job postings with location Pune and title ai product manager agentic ai product manager director / senior director of product management and vp of product manager and create me a data base of the common themes across these postings, the idea is to use these common themes to write my resume, a base resume will be provided, please create an updated resume based on the scan results for that week and save it in a dropbox location using naming convention to clearly indicate the data of creation, once that is done send me an email with the Subject Update resume for week of <<date placeholder>> with the newly created resume attached
+> On a weekly basis scan through all the job postings with location Pune and title ai product manager agentic ai product manager director / senior director of product management and vp of product manager and create me a database of the common themes across these postings, the idea is to use these common themes to write my resume, a base resume will be provided, please create an updated resume based on the scan results for that week and save it in a dropbox location using naming convention to clearly indicate the date of creation, once that is done send me an email with the Subject Update resume for week of <<date placeholder>> with the newly created resume attached.
 
-## What it does
+## What it does (Unified Multi-Agent System)
 
-1. **Scans** LinkedIn, Naukri, Indeed, and Glassdoor for AI PM / Director / VP of Product roles in Pune
-2. **Analyzes** job descriptions with Claude to extract frequency-weighted themes (skills, responsibilities, keywords)
-3. **Rewrites** a base resume to reflect the week's most in-demand themes
-4. **Saves** the updated resume to Dropbox as `Resume_Mayukh_Ghosh_PM_WeekOf_YYYY-MM-DD.docx`
-5. **Emails** the resume to you with a summary of the top themes
+1. **Job Scraper & Resume Tuner**: Scans regional job boards for AI PM / Director / VP of Product roles, extracts frequency-weighted technical themes, and edits experience bullets *in-place* to target high-probability keywords without corrupting document layouts.
+2. **Agent Opportunity Watchdog**: Directly queries the Greenhouse and Lever ATS endpoints of top-tier AI organizations, identifying and alerts stealth job postings immediately upon publication.
+3. **Agent Tutor**: Queries research repositories (arXiv API) and code libraries (GitHub APIs), programmatically deploys factual NotebookLM upskilling workspaces, generates voice-synthesis explainer podcasts, and emails a structured Weekly Study Plan.
+4. **Agent Mock Interviewer**: Generates highly custom, difficulty-graded technical architecture and behavioral interview questions based on SQLite's weekly scanned themes and candidate resume bullets, evaluates performance, and logs evaluation scorecards.
+5. **Agent Portfolio Architect**: Automatically translates trending technical stacks into fully structural open-source lab templates (source files, tests, requirements, and GitHub Actions CI pipelines) published directly to the user's GitHub account to display visible proof-of-expertise.
+
 
 ## Documentation
 

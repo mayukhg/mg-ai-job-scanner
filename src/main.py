@@ -46,6 +46,9 @@ def main():
     
     from src.analyzer.trending import TrendStorageManager
     from src.tutor.agent_tutor import AgentTutor
+    from src.scraper.watchdog import AgentOpportunityWatchdog
+    from src.interviewer.mock_interviewer import AgentMockInterviewer
+    from src.portfolio.portfolio_architect import AgentPortfolioArchitect
     
     try:
         storage = TrendStorageManager(str(db_file_path))
@@ -53,7 +56,7 @@ def main():
         logger.error(f"Failed to initialize relational database storage: {e}")
         sys.exit(1)
         
-    # 4. Simulate Weekly Scan Theme Extraction Output
+    # 4. Simulate Weekly Scan Theme Extraction Output (Job Scanner & In-place Resume Refiner)
     mock_extracted_themes = {
         "keywords": ["LangGraph State Sync", "Apify Scraper Integration"],
         "skills": ["Multi-Agent Architecture", "SQLite State Versioning"]
@@ -63,11 +66,24 @@ def main():
     logger.info(f"Logging extracted market keywords for week {week_id}...")
     storage.save_weekly_trends(week_id, mock_extracted_themes, ["https://example.com/job/123"])
     
-    # 5. Initialize and Execute Agent Tutor Upskilling Loop
+    # 5. Execute Agent Opportunity Watchdog (Stealth Job Scraper)
+    watchdog = AgentOpportunityWatchdog(storage, config)
+    watchdog.check_stealth_opportunities()
+    
+    # 6. Execute Agent Tutor (Continuous Upskilling Loop)
     tutor = AgentTutor(storage)
     tutor.execute_weekly_upskilling(week_id)
+    
+    # 7. Execute Agent Mock Interviewer (Interview Coach)
+    interviewer = AgentMockInterviewer(storage, config)
+    interviewer.conduct_mock_interview(week_id, interview_type="system_design")
+    
+    # 8. Execute Agent Portfolio Architect (Project Scaffolder)
+    portfolio = AgentPortfolioArchitect(storage, config)
+    portfolio.scaffold_trending_project(week_id)
     
     logger.info("Workflow execution complete (Dry Run / Skeleton Mode).")
 
 if __name__ == "__main__":
     main()
+
