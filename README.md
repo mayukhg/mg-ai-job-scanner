@@ -35,4 +35,5 @@ A serverless multi-agent ecosystem that automatically monitors job markets, scra
 
 ## Status
 
-> Under construction — see [DESIGN.md](DESIGN.md) for the full plan.
+> **Fully Operational** — The multi-agent engine is production-ready, running serverless weekly cron cycles via GitHub Actions, persisted via SQLite, and integrated with live learning and evaluation loops. See [PITCH.md](PITCH.md) for the product vision and [DESIGN_HYBRID.md](DESIGN_HYBRID.md) for the architectural blueprint.
+
