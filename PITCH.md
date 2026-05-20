@@ -3,6 +3,11 @@
 > [!NOTE]
 > **Pitch Thesis**: In the rapidly evolving landscape of Artificial Intelligence, job hunting for an **Agentic AI Product Manager** requires more than a static resume. It demands a demonstration of the very technology you build. This system is a production-grade, serverless multi-agent architecture that acts as a continuous personal career optimization engine. It showcases technical depth, commercial judgment, and product design pragmatism.
 
+> [!TIP]
+> **Executive Presentation Downloads**:
+> * 📄 **[Download Premium PDF Format](https://github.com/mayukhg/mg-ai-job-scanner/raw/main/docs/Career_Intelligence_Engine_Pitch.pdf)** | **[Local PDF Link](file:///C:/Users/maghosh/.gemini/antigravity/scratch/mg-ai-job-scanner/docs/Career_Intelligence_Engine_Pitch.pdf)**
+> * 📝 **[Download Premium Word (DOCX) Format](https://github.com/mayukhg/mg-ai-job-scanner/raw/main/docs/Career_Intelligence_Engine_Pitch.docx)** | **[Local DOCX Link](file:///C:/Users/maghosh/.gemini/antigravity/scratch/mg-ai-job-scanner/docs/Career_Intelligence_Engine_Pitch.docx)**
+
 ---
 
 ## 1. The Core Vision: Personal Career Intelligence
