@@ -133,7 +133,11 @@ Agent Mock Interviewer retrieves the current week's trending themes and tailored
 ### 5.5 Programmatic Proof-of-Work Scaffolding
 Agent Portfolio Architect addresses the ultimate career barrier: showing, not just telling. It designs a proof-of-concept project demonstrating trending technologies, automatically scaffolds directory hierarchies (source folders, unit tests, YAML GitHub Actions CI scripts, requirements lists), writes standard execution templates, generates a premium README detailing the architecture, and prepares it to be committed and published directly to the user's GitHub.
 
+### 5.6 Interactive Onboarding & Defensive UX
+A sophisticated AI ecosystem requires a seamless configuration entrypoint. The engine features an interactive CLI onboarding wizard (`onboard.py`) that serves as a secure, step-by-step bootstrapper. Following **Defensive UX** design principles, the wizard separates standard system preferences (written directly to `config/settings.yaml`) from sensitive user access keys (Google Gemini API Keys, GitHub PATs, Dropbox sync tokens) which are saved to a git-ignored, local `.env` file. This eliminates the risk of credential leakage while enabling rapid, zero-friction local or serverless deployment.
+
 ---
+
 
 ## 6. Alignment with Agentic AI PM Competencies
 

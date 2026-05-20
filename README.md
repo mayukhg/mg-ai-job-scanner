@@ -37,3 +37,42 @@ A serverless multi-agent ecosystem that automatically monitors job markets, scra
 
 > **Fully Operational** — The multi-agent engine is production-ready, running serverless weekly cron cycles via GitHub Actions, persisted via SQLite, and integrated with live learning and evaluation loops. See [PITCH.md](PITCH.md) for the product vision and [DESIGN_HYBRID.md](DESIGN_HYBRID.md) for the architectural blueprint.
 
+---
+
+## Deployment & Usage Guide
+
+Follow these steps to deploy and run the **Career Intelligence Engine** locally or in a serverless GitHub Actions environment:
+
+### 1. Prerequisite Setup
+Ensure Python 3.8+ is installed. Clone the repository and install all required modules:
+```bash
+git clone https://github.com/mayukhg/mg-ai-job-scanner.git
+cd mg-ai-job-scanner
+pip install -r requirements.txt
+```
+
+### 2. Run the Interactive Onboarding Flow
+Configure your profile, set scan frequencies, select job boards, specify notification targets, and safely hook up credentials without leaking them:
+```bash
+python onboard.py
+```
+> [!IMPORTANT]
+> **Defensive UX Security**: Sensitive access keys (e.g. Gemini API Key, GitHub PAT, Dropbox Token) are written directly to a secure, git-ignored local `.env` file at your project root, preventing accidental commits while maintaining seamless developer access.
+
+### 3. Execute the Ecosystem Main Loop
+To trigger a manual scan, resume updates, mock interviewer questions, upskilling packs, and programmatic GitHub scaffolding, run:
+```bash
+python src/main.py
+```
+
+### 4. Serverless Cloud Setup (GitHub Actions)
+To run this multi-agent loop 100% serverless on a weekly or daily schedule:
+1. Ensure your settings (`config/settings.yaml`) are committed and pushed to your remote repository.
+2. In your GitHub repository homepage, navigate to **Settings > Secrets and variables > Actions**.
+3. Define the following Actions Repository Secrets matching your local `.env`:
+   * `GEMINI_API_KEY`: Your Gemini/Google AI Studio key for upskilling caching and mock coaching.
+   * `GITHUB_PAT`: GitHub personal access token with `repo` scopes to permit Agent Portfolio Architect to push scaffolds to your account.
+   * `DROPBOX_ACCESS_TOKEN`: API token to sync relaid resumes and sqlite persistence vaults.
+4. Navigate to the **Actions** tab in your repository and enable the pre-configured workflow scheduler.
+
+
