@@ -30,6 +30,7 @@ A weekly AI agent that scans PM/AI product job postings in Pune, extracts common
 ### Hybrid GHA + Python Implementation (Option 3 — Recommended)
 - [Hybrid Design](DESIGN_HYBRID.md) — GHA runtime, python-docx XML manipulation, Apify integration, secret auto-refresh
 - [Hybrid Architecture](ARCHITECTURE_HYBRID.md) — Mermaid diagrams: cloud system flow, ingestion pipeline, docx in-place edits, sequence flow
+- [Agent Tutor Upskilling Design](DESIGN_AGENT_TUTOR.md) — Relational SQLite schemas, Google NotebookLM Client & universal Gemini fallbacks, deduplication checks, arXiv/GitHub crawl pipelines
 
 ## Status
 

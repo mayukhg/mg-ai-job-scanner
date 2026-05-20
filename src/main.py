@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+import datetime
 import yaml
 from pathlib import Path
 
@@ -27,6 +28,8 @@ def main():
     
     # 1. Resolve Paths
     project_root = Path(__file__).resolve().parent.parent
+    if str(project_root) not in sys.path:
+        sys.path.insert(0, str(project_root))
     config_path = project_root / "config" / "settings.yaml"
     
     # 2. Load Config
@@ -36,14 +39,34 @@ def main():
         logger.error(f"Failed to load config: {e}")
         sys.exit(1)
         
-    logger.info("Skeleton structures loaded successfully.")
-    logger.info("1. Ingestion Layer: Modular Apify Scraper.")
-    logger.info("2. Extraction Layer: Multi-Model theme analyzer.")
-    logger.info("3. Resume Modification: XML-safe in-place docx writer.")
-    logger.info("4. Unified Delivery: Dropbox state-sync and Gmail notification.")
+    # 3. Initialize Relational Storage Manager
+    db_path = config.get("storage", {}).get("local_db_path", "data/store/themes.db")
+    # Resolve relative to project root if needed
+    db_file_path = project_root / db_path
     
-    # Placeholder for execution flow
-    logger.info("Running orchestrator skeleton...")
+    from src.analyzer.trending import TrendStorageManager
+    from src.tutor.agent_tutor import AgentTutor
+    
+    try:
+        storage = TrendStorageManager(str(db_file_path))
+    except Exception as e:
+        logger.error(f"Failed to initialize relational database storage: {e}")
+        sys.exit(1)
+        
+    # 4. Simulate Weekly Scan Theme Extraction Output
+    mock_extracted_themes = {
+        "keywords": ["LangGraph State Sync", "Apify Scraper Integration"],
+        "skills": ["Multi-Agent Architecture", "SQLite State Versioning"]
+    }
+    week_id = datetime.datetime.now().strftime("%Y-W%U")
+    
+    logger.info(f"Logging extracted market keywords for week {week_id}...")
+    storage.save_weekly_trends(week_id, mock_extracted_themes, ["https://example.com/job/123"])
+    
+    # 5. Initialize and Execute Agent Tutor Upskilling Loop
+    tutor = AgentTutor(storage)
+    tutor.execute_weekly_upskilling(week_id)
+    
     logger.info("Workflow execution complete (Dry Run / Skeleton Mode).")
 
 if __name__ == "__main__":
