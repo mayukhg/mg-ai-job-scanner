@@ -24,49 +24,110 @@ The standard job hunting workflow is broken—especially in high-stakes emerging
 The Career Intelligence Engine is orchestrated by five specialized, autonomous agents that coordinate state and execution via a central SQLite persistence layer (`themes.db`) synced round-trip to cloud storage (Dropbox).
 
 ```mermaid
-graph TD
+graph TB
+    %% Styling Classes
+    classDef frontend fill:#4a148c,stroke:#333,stroke-width:2px,color:#fff;
     classDef agent fill:#6a1b9a,stroke:#333,stroke-width:2px,color:#fff;
-    classDef storage fill:#1565c0,stroke:#333,stroke-width:1px,color:#fff;
-    classDef client fill:#2e7d32,stroke:#333,stroke-width:1px,color:#fff;
-    classDef deliverable fill:#ef6c00,stroke:#333,stroke-width:1px,color:#fff;
+    classDef database fill:#1565c0,stroke:#333,stroke-width:2px,color:#fff;
+    classDef api fill:#2e7d32,stroke:#333,stroke-width:1px,color:#fff;
+    classDef deliverable fill:#e65100,stroke:#333,stroke-width:2px,color:#fff;
 
-    %% Ingestion Trigger
-    GHA[Weekly Actions Cron] --> B1[1. Job Scanner & Resume Tuner]:::agent
-    GHA --> B2[2. Opportunity Watchdog]:::agent
+    %% Subgraph: Front-End & Input Layer
+    subgraph Input_Layer ["1. Configuration & Security Gateway"]
+        UI["Onboarding Webpage / CLI Portal<br/>(onboard.py)"]:::frontend
+        YAML["System Preferences<br/>(config/settings.yaml)"]:::frontend
+        ENV["Secure Credentials Vault<br/>(.env / Repo Secrets)"]:::frontend
+        ResumeBase["Master Candidate Resume<br/>(Resume_Base.docx)"]:::frontend
+    end
 
-    %% Job Scanner & Resume Refiner
-    B1 -->|Managed Scrape| Apify[Apify Scraper Engine]:::client
-    Apify -->|Theme Ingestion| DB[(SQLite Database)]:::storage
-    DB -->|Read Resume Bullets| B1
-    B1 -->|In-place Run Edits| ResumeDoc[Tailored Resume docx]:::deliverable
-    ResumeDoc -->|Upload Sync| Dropbox[Dropbox Storage]:::storage
+    %% Subgraph: Relational State Controller
+    subgraph Database_State ["2. Central Relational Store (SQLite: themes.db)"]
+        DB_Trends["trending_topics<br/>(week_id, topic, key, score)"]:::database
+        DB_Notebooks["generated_notebooks<br/>(topic, notebook_id, urls)"]:::database
+        DB_Stealth["stealth_opportunities<br/>(company, title, url, alerted)"]:::database
+        DB_Interviews["mock_interviews<br/>(week_id, type, score, scorecard_path)"]:::database
+        DB_Portfolio["portfolio_projects<br/>(name, stack, local_path, github_url)"]:::database
+    end
 
-    %% Opportunity Watchdog
-    B2 -->|Scrape ATS Direct| ATS[Greenhouse & Lever APIs]:::client
-    ATS -->|Deduplicate & Index| DB
-    B2 -->|Record Alert| DB
-    B2 -->|Alert User| Notify[Weekly Notifications]:::deliverable
+    %% Subgraph: Ingestion & Market Agents
+    subgraph Market_Ingestion ["3. Market Intelligence & Stealth Hunting"]
+        Agent1["Agent 1: Job Scanner & Resume Tuner<br/>(src/resume/)"]:::agent
+        Agent2["Agent 2: Opportunity Watchdog<br/>(src/scraper/)"]:::agent
+        Apify["Apify Scraper Crawler<br/>(Regional Boards)"]:::api
+        ATS["ATS Direct Scrapers<br/>(Greenhouse & Lever)"]:::api
+    end
 
-    %% SQLite relational state triggers upskilling
-    DB -->|Unmapped Trend Keywords| B3[3. Agent Tutor]:::agent
-    B3 -->|Fetch Research & Code| Scholar[arXiv & GitHub Search APIs]:::client
-    Scholar -->|Source Grounding Payloads| B3
-    B3 -->|Workspace Instantiation| NotebookLM[NotebookLM Client / Gemini API]:::client
-    NotebookLM -->|Generates Explainers| B3
-    B3 -->|MIME Email Delivery| Mail[SMTP Study Plan Email]:::deliverable
-    B3 -->|Log Generated Workspace| DB
+    %% Subgraph: Continuous Upskilling (Tutor)
+    subgraph Upskilling_Loop ["4. Closed-Loop Upskilling (Agent Tutor)"]
+        Agent3["Agent 3: Agent Tutor<br/>(src/tutor/)"]:::agent
+        ArXiv["arXiv Search API<br/>(Academic Papers)"]:::api
+        GitHubAPI["GitHub Search API<br/>(Code Specifications)"]:::api
+        NotebookLM["Google NotebookLM Client<br/>(Gemini Context Cache fallback)"]:::api
+    end
 
-    %% Mock Interviewer
-    DB -->|Target Weekly Skills & Resume| B4[4. Mock Interviewer]:::agent
-    B4 -->|Tailored Architectural Questions| B4
-    B4 -->|Dry Run Assessment| Scorecard[Markdown Scorecards]:::deliverable
-    Scorecard -->|Log Readiness & Path| DB
+    %% Subgraph: Continuous Evaluation (Interviewer)
+    subgraph Evaluation_Loop ["5. Career Readiness Coach (Agent Mock Interviewer)"]
+        Agent4["Agent 4: Agent Mock Interviewer<br/>(src/interviewer/)"]:::agent
+    end
 
-    %% Portfolio Architect
-    DB -->|Trending Stacks| B5[5. Portfolio Architect]:::agent
-    B5 -->|Scaffold Lab Template| LocalRepo[Local Lab Layout]
-    LocalRepo -->|Push Proof-Of-Work| GitHub[User GitHub Repository]:::storage
-    B5 -->|Log Project URL| DB
+    %% Subgraph: Practical Scaffolding (Portfolio Architect)
+    subgraph Practical_Scaffolding ["6. Practical Proof-of-Work (Agent Portfolio Architect)"]
+        Agent5["Agent 5: Agent Portfolio Architect<br/>(src/portfolio/)"]:::agent
+    end
+
+    %% Subgraph: Outer Deliverables
+    subgraph Deliverables ["7. Sync, Notifications & Portfolios"]
+        ResumeOutput["Tailored Resume<br/>(Resume_YYYYMMDD.docx)"]:::deliverable
+        DropboxSync["Dropbox Cloud Sync<br/>(/Resumes/Weekly/)"]:::deliverable
+        StealthAlert["Alert Notifications<br/>(Stealth Openings Detected)"]:::deliverable
+        StudyEmail["Weekly Study Plan Email<br/>(Podcasts, Mindmaps, Notebook Links)"]:::deliverable
+        ScorecardMD["Markdown Scorecard Log<br/>(Interview Readiness Stats)"]:::deliverable
+        GitRepo["Active GitHub Repository<br/>(Published Lab Proof-of-Work)"]:::deliverable
+    end
+
+    %% Setup & Ingestion Triggers
+    UI -->|1. Interactive Setup| YAML
+    UI -->|2. Write Secrets| ENV
+    YAML -->|Load Configurations| Agent1 & Agent2 & Agent3 & Agent4 & Agent5
+
+    %% Agent 1 Flow (Scan & Resume Tune)
+    Agent1 -->|Trigger Crawl| Apify
+    Apify -->|Raw JD Ingestion| Agent1
+    Agent1 -->|Extract & Weight Themes| DB_Trends
+    DB_Trends -->|3. Feed Scanned Keywords| Agent1
+    ResumeBase -->|4. Input Base Bullets| Agent1
+    Agent1 -->|5. XML In-Place Copywriting| ResumeOutput
+    ResumeOutput -->|6. Auto-Sync Backup| DropboxSync
+
+    %% Agent 2 Flow (Stealth Opportunities Watchdog)
+    Agent2 -->|Trigger Direct Scrapes| ATS
+    ATS -->|Stealth Postings Payload| Agent2
+    Agent2 -->|7. Relational Deduplication| DB_Stealth
+    DB_Stealth -->|Write New Unique Openings| DB_Stealth
+    Agent2 -->|8. Alert Dispatch| StealthAlert
+
+    %% Agent 3 Flow (Agent Tutor Upskilling)
+    DB_Trends -->|9. Extract Unmapped Topics| Agent3
+    Agent3 -->|Query Scientific Knowledge| ArXiv
+    Agent3 -->|Query Standard Code Specs| GitHubAPI
+    ArXiv & GitHubAPI -->|Unified Grounding Payload| Agent3
+    Agent3 -->|10. Instantiate Workspace| NotebookLM
+    NotebookLM -->|11. Synthesize Podcasts, Mindmaps & Scripts| Agent3
+    Agent3 -->|12. Persistence Logging| DB_Notebooks
+    Agent3 -->|13. Deliver Weekly Study Plan| StudyEmail
+
+    %% Agent 4 Flow (Agent Mock Interviewer Coach)
+    DB_Trends -->|14. Fetch Target Skill Themes| Agent4
+    ResumeOutput -->|15. Import Custom Experience Bullets| Agent4
+    Agent4 -->|16. Dynamic Difficulty Questionnaire| Agent4
+    Agent4 -->|17. Local Markdown Grading| ScorecardMD
+    Agent4 -->|18. Log Performance Scorecards| DB_Interviews
+
+    %% Agent 5 Flow (Agent Portfolio Architect Scaffolder)
+    DB_Trends -->|19. Identify Trending Technology Combinations| Agent5
+    Agent5 -->|20. Generate Boilerplate Template| Agent5
+    Agent5 -->|21. Scaffold Directories & GHA CI YAMLs| GitRepo
+    Agent5 -->|22. Version Proof-of-Work Metas| DB_Portfolio
 ```
 
 ### The 5 Core Agents:

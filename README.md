@@ -14,11 +14,45 @@ A serverless multi-agent ecosystem that automatically monitors job markets, scra
 4. **Agent Mock Interviewer**: Generates highly custom, difficulty-graded technical architecture and behavioral interview questions based on SQLite's weekly scanned themes and candidate resume bullets, evaluates performance, and logs evaluation scorecards.
 5. **Agent Portfolio Architect**: Automatically translates trending technical stacks into fully structural open-source lab templates (source files, tests, requirements, and GitHub Actions CI pipelines) published directly to the user's GitHub account to display visible proof-of-expertise.
 
+## End-to-End System Workflow
+
+To visualize the interactions between the 5 specialized agents, relational database triggers, and deployment targets, refer to our comprehensive workflow diagram:
+
+```mermaid
+graph TD
+    UI[onboard.py Wizard] -->|Bootstrap| SQLite[(SQLite Storage)]
+    UI -->|Setup| GHA[GitHub Actions Cron]
+    GHA -->|Trigger Run| A1[Agent 1: Scraper & Tuner]
+    GHA -->|Trigger Run| A2[Agent 2: Opportunity Watchdog]
+    
+    A1 -->|Log Scans| SQLite
+    A1 -->|Tune XML| Resume[Tailored Resume]
+    A2 -->|Direct ATS Scrapes| SQLite
+    A2 -->|Alert User| Notify[Weekly Notifications]
+    
+    SQLite -->|Unmapped Trends| A3[Agent 3: Agent Tutor]
+    A3 -->|arXiv & GitHub| Search[Research Scrapes]
+    A3 -->|Workspace setup| NotebookLM[NotebookLM / Gemini Cache]
+    NotebookLM -->|Synthesize Explainers| A3
+    A3 -->|Deliver Study Plan| Mail[SMTP Email]
+    A3 -->|Log notebooks| SQLite
+    
+    SQLite -->|Target Skills & Resume| A4[Agent 4: Mock Interviewer]
+    A4 -->|System Design Questions| A4
+    A4 -->|Evaluation Scorecards| SQLite
+    
+    SQLite -->|Trending Stacks| A5[Agent 5: Portfolio Architect]
+    A5 -->|Scaffold Lab Template| Git[User GitHub Profile]
+    A5 -->|Log Metadata| SQLite
+```
+
+For a comprehensive, high-fidelity mapping of all 8 core career preparation use cases, data models, and system pathways, check out the dedicated **[System Workflow Specification](docs/SYSTEM_WORKFLOW.md)**.
 
 ## Documentation
 
-### Core Project Pitch
-- [Product & Technical Pitch](PITCH.md) — Establishes the vision, system engineering trade-offs, and product decisions (e.g., Build vs. Buy, Defensive UX, and State persistence) directly aligning with **Agentic AI Product Manager** competencies, alongside the future NotebookLM upskilling roadmap.
+### System Design & Workflows
+* **[System Workflow Specification](docs/SYSTEM_WORKFLOW.md)** — Detailed Mermaid.js diagram and documentation of the 8 production career preparation use cases.
+* **[Product & Technical Pitch](PITCH.md)** — Establishes the vision, system engineering trade-offs, and product decisions (e.g., Build vs. Buy, Defensive UX, and State persistence) directly aligning with **Agentic AI Product Manager** competencies, alongside the future NotebookLM upskilling roadmap.
 
 ### Anthropic SDK Implementation
 - [System Design](DESIGN.md) — architecture, components, tech stack, agent flow
