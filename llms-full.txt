@@ -1,0 +1,83 @@
+# Career Intelligence Engine (CIE) — Full Technical Specification
+
+This document provides a highly comprehensive technical reference for the multi-agent Career Intelligence Engine (CIE).
+
+---
+
+## 1. Five Strategic Pillars
+
+### Pillar 1: Stateless-Native Memory (Git-as-a-Database)
+CIE runs serverlessly (e.g. inside GitHub Actions schedules) without persistent physical servers. To prevent context amnesia, it saves weekly scans, interview ratings, and scaffolded projects into an encrypted or structural `state_history.json` and pushes it back to an isolated `state-store` Git branch.
+- **Workflow Load Phase**: Orchestrator checks out `refs/heads/state-store`, parses `state_history.json`, and loads matches into database/memory.
+- **Workflow Commit Phase**: Orchestrator updates matching lists, writes updated JSON, and pushes state to remote.
+
+### Pillar 2: Expanded Proof-of-Work Scaffolding
+Rather than generating simple boilerplate, the Portfolio Architect analyzes trending tech stacks and target job descriptions to construct a comprehensive Test-Driven Development (TDD) environment.
+- **Test Generation**: Generates testing configuration (`pytest.ini`), requirements (`requirements.txt`), and failing specifications (`tests/test_*.py`).
+- **Challenge Setup**: Embeds failing unit/integration/security tests related to target architectures. The developer must make tests green to produce a credible, showcase-ready GitHub repository.
+
+### Pillar 3: NotebookLM Source Compiler
+To address Google NotebookLM's lack of an open API, CIE creates a hyper-dense markdown brief (`notebook_ingest_source.md`) in `data/tutor/` aggregating the target company's engineering blogs, technical architectures, and threat landscapes.
+- **Anchors**: Uses structural anchors (e.g., `[EXECUTIVE SUMMARY]`, `[SYSTEM DESIGN SCENARIOS]`, `[CORE TECH STACK DEEP DIVE]`) to maximize NotebookLM's retrieval efficiency.
+
+### Pillar 4: LLMOps Observability & Tracing
+Eliminates agent "black box" problems by writing direct structured traces.
+- **ASCII Flow Graph**: Shows inputs, outputs, tokens, execution time, and confidence-weight scores.
+- **GHA Summaries**: Exports details to `gha_run_summary.md`, which is appended to the GitHub Actions `$GITHUB_STEP_SUMMARY` runner interface.
+
+### Pillar 5: Rebranding & Repository Optimization
+Rebrands all interfaces away from generic job scanning terms to focus on advanced agentic systems. Place `llms.txt` and `llms-full.txt` at the root for model parsing and ranking.
+
+---
+
+## 2. Directory Structure
+
+```
+mg-ai-job-scanner/
+├── llms.txt                     ← Quick discovery sheet for LLMs
+├── llms-full.txt                ← Full technical specs for LLMs (This file)
+├── README.md                    ← User-facing documentation
+├── PITCH.md                     ← Vision and PM Pitch
+├── DESIGN.md                    ← Main System Design Specs
+├── ARCHITECTURE.md              ← Main Architecture & Mermaid Diagrams
+├── onboard.py                   ← Interactive onboarding script
+│
+├── config/
+│   └── settings.yaml            ← System configuration
+│
+├── .github/workflows/
+│   └── weekly_scan.yml          ← GHA workflow with write permissions
+│
+└── src/
+    ├── main.py                  ← Execution Orchestrator
+    ├── analyzer/
+    │   ├── trending.py          ← SQLite Persistence Layer
+    │   ├── git_database.py      ← Git-as-a-Database Sync
+    │   └── observability.py     ← LLMOps Trace Compiler
+    ├── onboarding/
+    │   └── onboarding_wizard.py ← Onboarding Wizard flow
+    ├── scraper/
+    │   ├── apify_client.py      ← Apify Crawler Integration
+    │   └── watchdog.py          ← ATS Direct Watchdog
+    ├── resume/
+    │   └── inplace_editor.py    ← DOCX XML Resume Writer
+    ├── tutor/
+    │   ├── agent_tutor.py       ← Continuous Upskilling Coach
+    │   ├── notebooklm_client.py  ← Mock NotebookLM integrations
+    │   └── source_extractor.py  ← arXiv & GitHub crawler
+    ├── interviewer/
+    │   └── mock_interviewer.py  ← Mock Interview Coach
+    └── portfolio/
+        └── portfolio_architect.py ← TDD Scaffolding Architect
+```
+
+---
+
+## 3. Configuration Schema (`config/settings.yaml`)
+- `model`: Sets specific models and temperatures for LLMs (Gemini, Claude, etc.).
+- `scraper`: Contains crawler targets, locations, search terms.
+- `storage`: Points to local databases and cloud destinations.
+- `email`: Configure notification parameters.
+- `watchdog`: List target companies (e.g. Anthropic, Perplexity) and check frequencies.
+- `interviewer`: Configure mock difficulty and grading outputs.
+- `portfolio`: Configure base locations and repository licenses.

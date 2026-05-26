@@ -1,258 +1,153 @@
-# Architecture — Visual Design
+# Career Intelligence Engine (CIE) — Architecture & Mermaid Diagrams
 
-## 1. High-Level System Flow
+This document outlines the visual system engineering layout, relational tables, and pipeline sequences defining the **Career Intelligence Engine (CIE)**.
+
+---
+
+## 1. High-Level Multi-Agent Architecture
+
+The Orchestrator agent boots inside GitHub Actions, pulls remote memory states, coordinates specialized agents via SQLite persistence, and writes back outputs to Git branches and GHA Summaries.
 
 ```mermaid
 flowchart TD
-    CRON([🕗 Weekly Cron\nEvery Monday 8AM]):::trigger
-
+    CRON([🕗 Weekly Cron / Manual Dispatch]):::trigger
     CRON --> ORCH
 
-    subgraph ORCH["🤖 Orchestrator Agent (Claude Sonnet)"]
-        direction LR
-        S1[1 · Scrape] --> S2[2 · Analyze] --> S3[3 · Write] --> S4[4 · Store] --> S5[5 · Notify]
+    subgraph ORCH["🤖 CIE Orchestrator Loop (main.py)"]
+        direction TB
+        GitPull[1 · Pull State from state-store branch] --> AgentRun[2 · Execute 5-Agent Ecosystem]
+        AgentRun --> Observability[3 · Generate gha_run_summary.md]
+        Observability --> GitPush[4 · Push updated state_history.json to state-store branch]
     end
 
-    subgraph SCRAPE["Job Scraper Module"]
-        LI[LinkedIn]
-        NA[Naukri.com]
-        IN[Indeed]
-        GL[Glassdoor]
+    subgraph MEMORY["Stateless Memory Layer"]
+        GitDB[("📁 Git-as-a-Database\nstate-store branch")]
+        SQLiteDB[("🗄 SQLite db\nthemes.db")]
     end
 
-    subgraph ANALYZE["Theme Analyzer Module"]
-        EX[Claude\nTheme Extraction]
-        DB[(Theme DB\nSQLite)]
+    subgraph AGENTS["Specialized Agents"]
+        A1[Agent 1: Scraper & Tuner]
+        A2[Agent 2: Watchdog]
+        A3[Agent 3: Agent Tutor]
+        A4[Agent 4: Mock Interviewer]
+        A5[Agent 5: Portfolio Architect]
     end
 
-    subgraph RESUME["Resume Writer Module"]
-        BR[/base_resume.docx/]
-        RW[Claude\nResume Rewrite]
-        OUT[/Resume_WeekOf_DATE.docx/]
-    end
-
-    subgraph DELIVER["Delivery"]
-        DP[Dropbox\n/Resumes/Weekly/]
-        EM[Gmail\nw/ Attachment]
-    end
-
-    S1 --> SCRAPE
-    SCRAPE --> S2
-    S2 --> ANALYZE
-    ANALYZE --> S3
-    BR --> S3
-    S3 --> RESUME
-    RESUME --> S4
-    S4 --> DP
-    S4 --> S5
-    S5 --> EM
+    GitPull <--> GitDB
+    AgentRun <--> SQLiteDB
+    A1 & A2 & A3 & A4 & A5 <--> AgentRun
 
     classDef trigger fill:#f5a623,color:#000,font-weight:bold
     classDef module fill:#4a90d9,color:#fff
-    classDef store fill:#7ed321,color:#000
 ```
 
 ---
 
-## 2. Job Scraper — Search Parameters
+## 2. Ingestion & Resume In-Place Rewrite Pipeline (Agent 1)
+
+Swaps experience bullets using programmatic python-docx XML manipulation while analyzing the candidate's GitHub footprint.
 
 ```mermaid
 flowchart LR
-    subgraph TITLES["Target Job Titles"]
-        T1[AI Product Manager]
-        T2[Agentic AI Product Manager]
-        T3[Director of Product Management]
-        T4[Senior Director of Product Management]
-        T5[VP of Product Management]
+    BASE[/📄 base_resume.docx\nCanonical Template/]
+    THEMES["📊 Scraped Weekly JDs\n+ GitHub Footprint"]
+    
+    BASE --> WRITER
+    THEMES --> WRITER
+
+    subgraph WRITER["🤖 Agent 1 — Resume Writer"]
+        P1["Parse user public GitHub repos"]
+        P2["Verify frequency keywords"]
+        P3["XML In-Place Bullet Swaps"]
     end
 
-    subgraph SOURCES["Job Boards"]
-        S1[🔵 LinkedIn]
-        S2[🟠 Naukri.com]
-        S3[🔴 Indeed]
-        S4[🟢 Glassdoor]
-    end
-
-    LOC["📍 Location: Pune, India\n🗓 Posted: Last 7 Days"]
-
-    TITLES --> QUERY
-    LOC --> QUERY
-    QUERY[Search Query Builder] --> SOURCES
-    SOURCES --> DEDUP[Deduplication\nby JD fingerprint]
-    DEDUP --> RAW[("📁 Raw Postings\nJSON Store")]
+    WRITER --> NEW[/"✅ Resume_WeekOf_YYYY-MM-DD.docx"/]
 ```
 
 ---
 
-## 3. Theme Extraction Pipeline
-
-```mermaid
-flowchart TD
-    RAW[("📁 Raw JDs\nN postings this week")]
-
-    RAW --> CLAUDE["🤖 Claude\nTheme Extraction Prompt"]
-
-    CLAUDE --> E1["Skills & Tools\n(LLM, RAG, Agents, Python...)"]
-    CLAUDE --> E2["Responsibilities\n(roadmap, GTM, stakeholders...)"]
-    CLAUDE --> E3["Qualifications\n(years exp, domain, MBA...)"]
-    CLAUDE --> E4["Buzzwords\n(GenAI, Agentic, Copilot...)"]
-
-    E1 & E2 & E3 & E4 --> AGG["Frequency Aggregator\n(count across all JDs)"]
-
-    AGG --> RANK["Ranked Theme Map\n(top N per category)"]
-
-    RANK --> DB[("🗄 Theme DB\nweekly snapshot")]
-    RANK --> JSON[("📄 themes_YYYY-MM-DD.json\n→ Dropbox /Themes/")]
-```
-
----
-
-## 4. Resume Generation
-
-```mermaid
-flowchart LR
-    BASE[/📄 base_resume.docx\nimmutable source/]
-    THEMES["📊 Top Themes\nthis week"]
-
-    BASE --> CLAUDE
-    THEMES --> CLAUDE
-
-    subgraph CLAUDE["🤖 Claude — Resume Writer"]
-        direction TB
-        P1["Rewrite Summary\nto highlight GenAI / Agentic"]
-        P2["Enhance Skills section\nwith ranked keywords"]
-        P3["Strengthen Experience bullets\nusing JD language"]
-    end
-
-    CLAUDE --> NEW[/"✅ Resume_Mayukh_Ghosh_PM\n_WeekOf_YYYY-MM-DD.docx"/]
-
-    NEW --> DB["📁 Dropbox\n/Resumes/Weekly/"]
-    NEW --> EMAIL["📧 Gmail\nw/ attachment"]
-```
-
----
-
-## 5. Weekly Execution Sequence
+## 3. Git-as-a-Database State Synchronization Sequence
 
 ```mermaid
 sequenceDiagram
-    participant CRON as 🕗 Cron
-    participant ORCH as 🤖 Orchestrator
-    participant SCRAPER as 🕷 Scraper
-    participant CLAUDE as 🧠 Claude API
-    participant DROPBOX as ☁️ Dropbox
-    participant GMAIL as 📧 Gmail
+    participant GHA as 🕗 GHA Cron Runner
+    participant ORCH as 🤖 CIE Orchestrator
+    participant GIT as 📁 Remote Git (state-store Branch)
+    participant SQL as 🗄 SQLite local (themes.db)
 
-    CRON->>ORCH: trigger(week_date)
-
-    ORCH->>SCRAPER: scrape_jobs(titles, Pune, last_7_days)
-    SCRAPER-->>ORCH: raw_postings[]
-
-    ORCH->>CLAUDE: extract_themes(raw_postings)
-    CLAUDE-->>ORCH: theme_map{category: [{text, frequency}]}
-
-    ORCH->>DROPBOX: get_file(base_resume.docx)
-    DROPBOX-->>ORCH: base_resume
-
-    ORCH->>CLAUDE: rewrite_resume(base_resume, theme_map)
-    CLAUDE-->>ORCH: updated_resume.docx
-
-    ORCH->>DROPBOX: upload(Resume_WeekOf_YYYY-MM-DD.docx)
-    DROPBOX-->>ORCH: shared_link
-
-    ORCH->>GMAIL: send_email(subject, theme_summary, attachment)
-    GMAIL-->>ORCH: sent ✓
+    GHA->>ORCH: Execute pipeline main.py
+    ORCH->>GIT: git fetch origin state-store
+    GIT-->>ORCH: state_history.json payload
+    ORCH->>SQL: Sync and seed trends into SQLite
+    ORCH->>ORCH: Run Agent executions (Tuner, Watchdog, Tutor, Interviewer, Architect)
+    ORCH->>SQL: Extract updated run parameters
+    ORCH->>GIT: git checkout state-store && git commit state_history.json && git push origin
+    GIT-->>ORCH: Pushed successfully ✓
+    ORCH->>GHA: Output Step Summary markdown
 ```
 
 ---
 
-## 6. Data Model
+## 4. TDD Project Scaffolding Structure (Agent 5)
+
+Rather than plain boilerplate, CIE scaffolds fully functional, failing Pytest TDD repositories.
 
 ```mermaid
-erDiagram
-    WEEKLY_RUN {
-        string week_date PK
-        int postings_scraped
-        int themes_extracted
-        string resume_filename
-        string dropbox_link
-        string email_sent_at
-    }
+flowchart TD
+    subgraph TDD_Scaffold ["Generated Portfolio Repository"]
+        direction TB
+        R1[README.md - explaining the TDD challenge]
+        C1[pytest.ini - configuration parameters]
+        R2[requirements.txt - installs pytest, pytest-mock]
+        S1["src/main.py - main class raising NotImplementedError"]
+        T1["tests/test_core.py - 3 failing pytest unit / security specs"]
+        CI[".github/workflows/ci.yml - runs pytest on pushes"]
+    end
 
-    RAW_POSTING {
-        string id PK
-        string week_date FK
-        string title
-        string company
-        string source
-        string url
-        text   jd_text
-        string scraped_at
-    }
-
-    THEME {
-        string id PK
-        string week_date FK
-        string category
-        string theme_text
-        int    frequency
-        float  pct_of_postings
-    }
-
-    WEEKLY_RUN ||--o{ RAW_POSTING : "contains"
-    WEEKLY_RUN ||--o{ THEME : "produces"
+    A5[Agent 5: Portfolio Architect] -->|Generates| TDD_Scaffold
 ```
 
 ---
 
-## 7. Folder Structure
+## 5. Folder Architecture
 
 ```
 mg-ai-job-scanner/
 │
-├── .github/workflows/
-│   └── weekly_scan.yml          ← Cron trigger (Monday 8AM IST)
+├── llms.txt                     ← Standard discovery profile for LLMs
+├── llms-full.txt                ← Detailed specification sheet for LLMs
 │
-├── src/
-│   ├── main.py                  ← Orchestrator entry point
-│   ├── scraper/
-│   │   ├── linkedin.py
-│   │   ├── naukri.py
-│   │   └── indeed.py
-│   ├── analyzer/
-│   │   └── theme_extractor.py   ← Claude theme extraction
-│   ├── resume/
-│   │   └── writer.py            ← Claude resume rewriter
-│   └── integrations/
-│       ├── dropbox_client.py
-│       └── email_client.py
+├── .github/workflows/
+│   └── weekly_scan.yml          ← GHA with contents:write permission
+│
+├── config/
+│   └── settings.yaml            ← Swappable model parameters
 │
 ├── data/
-│   ├── base_resume/             ← Your immutable base resume
-│   ├── raw_postings/            ← Weekly JD JSON dumps
-│   └── themes/                  ← Weekly theme snapshots
+│   ├── base_resume/             ← Immutable master resume
+│   ├── store/
+│   │   ├── themes.db            ← Relational database
+│   │   └── state_history.json   ← Versioned state file
+│   ├── tutor/
+│   │   └── briefs/
+│   │       └── brief_*.md       ← Pre-anchored NotebookLM briefs
+│   └── portfolio/
+│       └── scaffolds/           ← Local directories of scaffolded TDD labs
 │
-├── DESIGN.md
-├── ARCHITECTURE.md              ← This file
-├── README.md
-└── requirements.txt
-```
-
----
-
-## 8. Credentials & Environment Variables
-
-```mermaid
-flowchart LR
-    subgraph ENV[".env / GitHub Secrets"]
-        A[ANTHROPIC_API_KEY]
-        B[SCRAPER_API_KEY\nApify or SerpAPI]
-        C[DROPBOX_APP_KEY\nDROPBOX_APP_SECRET\nDROPBOX_REFRESH_TOKEN]
-        D[GMAIL_CLIENT_ID\nGMAIL_CLIENT_SECRET\nGMAIL_REFRESH_TOKEN]
-    end
-
-    A --> CLAUDE_API[Claude API]
-    B --> JOB_BOARDS[Job Boards]
-    C --> DROPBOX[Dropbox]
-    D --> GMAIL[Gmail]
+├── src/
+│   ├── main.py                  ← Orchestrator Loop
+│   ├── onboard.py               ← Onboarding Wizard
+│   │
+│   ├── analyzer/
+│   │   ├── trending.py          ← SQLite Persistence
+│   │   ├── git_database.py      ← Git-as-a-Database
+│   │   └── observability.py     ← LLMOps Trace Observability
+│   │
+│   ├── tutor/
+│   │   ├── agent_tutor.py       ← Upskilling brief compiler
+│   │   ├── source_extractor.py  ← arXiv & GitHub crawler
+│   │   └── notebooklm_client.py  ← Mock NotebookLM integrations
+│   │
+│   └── portfolio/
+│       └── portfolio_architect.py ← failing pytest scaffold builder
 ```

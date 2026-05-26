@@ -1,0 +1,31 @@
+# Career Intelligence Engine (CIE)
+
+The Career Intelligence Engine is a serverless, multi-agent ecosystem that automatically monitors job markets, scans stealth opportunities, tunes resumes in-place, conducts interactive upskilling and mock interview coaching, and scaffolds verified Test-Driven Development (TDD) proof-of-work project repositories.
+
+## Core Features
+- **Stateless-Native Memory (Git-as-a-Database)**: Saves/loads execution state history (JD matches, resume edits, mock interview scores) to a secure, isolated remote git branch (`state-store`).
+- **TDD Scaffolding Engine**: Populates generated portfolio repositories with failing pytest unit/integration/security suites, forcing the developer to solve real-world coding issues.
+- **NotebookLM Source Compiler**: Consolidates engineering blogs, system architectures, and threats into a structured, anchored markdown file `notebook_ingest_source.md` designed for drop-in ingestion.
+- **LLMOps Observability**: Outputs structured execution graphs and confidence metrics directly to GitHub Actions Run Summaries.
+
+## Tech Stack
+- **Languages**: Python 3.8+
+- **Database/Persistence**: SQLite, Git-based JSON state
+- **Core Integrations**: Apify (Job Crawler), Dropbox, SMTP Email, GitHub (PAT Auth), Gemini & Claude API
+- **Testing**: Pytest
+
+## Quick Start
+1. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Configure settings:
+   ```bash
+   python onboard.py
+   ```
+3. Execute the orchestrator loop:
+   ```bash
+   python src/main.py
+   ```
+
+For detailed specifications, see `llms-full.txt` or `README.md`.

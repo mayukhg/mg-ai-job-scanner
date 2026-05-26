@@ -80,12 +80,12 @@ MODEL_NAME = "gemini-2.0-pro-exp"  # or "claude-3-5-sonnet"
   3. The API client obtains a fresh, short-lived `access_token` valid for 3600 seconds.
   4. Executed completely headlessly without the risk of community MCP version crashes.
 
-### 5. Database Persistence Layer (Dropbox Round-Trip Sync)
-* **Strategy**: Overcomes the stateless, ephemeral nature of GitHub Actions runner VMs by establishing a reliable state-sync lifecycle with Dropbox.
+### 5. Database Persistence Layer (Git-as-a-Database Sync)
+* **Strategy**: Overcomes the stateless, ephemeral nature of GitHub Actions runner VMs by establishing a reliable state-sync lifecycle with Git-as-a-Database on an isolated Git branch (`state-store`).
 * **Mechanism**:
-  1. **Boot Hook**: At startup, the Python script uses the Dropbox API to check for an existing `themes.db` inside `/Themes/themes.db`. If found, it downloads the database file to the runner's local container directory `data/store/themes.db`. If it does not exist, the script initializes a new local SQLite database file with the target schemas.
-  2. **Processing**: The orchestrator runs the scraping and LLM analysis pipelines, writing the weekly theme snapshots locally to `data/store/themes.db`.
-  3. **Teardown Hook**: Upon successful completion of all stages, the script uploads the updated local `themes.db` back to Dropbox, safely overwriting the cloud `/Themes/themes.db` location to preserve history.
+  1. **Boot Hook**: At startup, the Git-as-a-Database manager fetches the remote origin, checks for the `state-store` branch, and pulls the version-controlled `state_history.json` snapshot to seed SQLite's internal tables.
+  2. **Processing**: The orchestrator runs the multi-agent pipelines (Tuner, Watchdog, Tutor, Interviewer, Architect), recording active keywords, stealth JDs, TDD scaffolds, and mock scorecard paths to the SQLite relational schema.
+  3. **Teardown Hook**: Upon successful completion of all stages, the manager switches the stateless GHA runner container's environment to the `state-store` branch, serializes the updated execution records back to `state_history.json`, commits the change, and pushes it back to the remote origin.
 
 ---
 

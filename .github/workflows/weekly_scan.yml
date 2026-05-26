@@ -1,4 +1,4 @@
-name: Weekly Job Scan & Resume Tailor
+name: Weekly Career Intelligence Engine (CIE) Loop
 
 on:
   schedule:
@@ -9,10 +9,14 @@ on:
 jobs:
   run-scanner:
     runs-on: ubuntu-latest
-    
+    permissions:
+      contents: write # Permits Git-as-a-Database state synchronization commits
+
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # Fetch all branches for Git-as-a-Database remote pushes
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -25,12 +29,13 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-      - name: Execute Scanner Pipeline
+      - name: Execute Career Engine Pipeline Orchestration
         env:
           # Injected GitHub Secrets
           APIFY_API_KEY: ${{ secrets.APIFY_API_KEY }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_PAT: ${{ secrets.GITHUB_PAT }}
           DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY }}
           DROPBOX_APP_SECRET: ${{ secrets.DROPBOX_APP_SECRET }}
           DROPBOX_REFRESH_TOKEN: ${{ secrets.DROPBOX_REFRESH_TOKEN }}
@@ -39,3 +44,10 @@ jobs:
           GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
         run: |
           python src/main.py
+
+      - name: Export LLMOps Observability Summary
+        if: always()
+        run: |
+          if [ -f gha_run_summary.md ]; then
+            cat gha_run_summary.md >> $GITHUB_STEP_SUMMARY
+          fi

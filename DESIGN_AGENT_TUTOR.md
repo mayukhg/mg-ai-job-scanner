@@ -41,7 +41,7 @@ Agent Tutor bridges the gap between weekly job market scans and personal skill a
 
 ## 2. Storage & Versioning Schemas
 
-To maintain clean, persistent relational history across ephemeral cloud VM boots (via Dropbox Round-Trip Sync), the local database `themes.db` is expanded with two highly structured tables:
+To maintain clean, persistent relational history across ephemeral cloud VM boots (via Git-as-a-Database Branch Sync), the local database `themes.db` is expanded with two highly structured tables:
 
 ### 2.1 Table: `trending_topics`
 Logs frequency-weighted trending titles extracted from weekly JDs.

@@ -8,33 +8,64 @@ A serverless multi-agent ecosystem that automatically monitors job markets, scra
 
 ## What it does (Unified Multi-Agent System)
 
-1. **Job Scraper & Resume Tuner**: Scans regional job boards for AI PM / Director / VP of Product roles, extracts frequency-weighted technical themes, and edits experience bullets *in-place* to target high-probability keywords without corrupting document layouts.
-2. **Agent Opportunity Watchdog**: Directly queries the Greenhouse and Lever ATS endpoints of top-tier AI organizations, identifying and alerts stealth job postings immediately upon publication.
-3. **Agent Tutor**: Queries research repositories (arXiv API) and code libraries (GitHub APIs), programmatically deploys factual NotebookLM upskilling workspaces, generates voice-synthesis explainer podcasts, and emails a structured Weekly Study Plan.
-4. **Agent Mock Interviewer**: Generates highly custom, difficulty-graded technical architecture and behavioral interview questions based on SQLite's weekly scanned themes and candidate resume bullets, evaluates performance, and logs evaluation scorecards.
-5. **Agent Portfolio Architect**: Automatically translates trending technical stacks into fully structural open-source lab templates (source files, tests, requirements, and GitHub Actions CI pipelines) published directly to the user's GitHub account to display visible proof-of-expertise.
+1. **Job Scraper & Resume Tuner (Agent 1)**: Scans regional job boards for target roles, extracts frequency-weighted technical themes, and edits experience bullets *in-place* to target high-probability keywords without corrupting document layouts, integrating a **Reverse Loop** that analyzes the user's public GitHub profile footprint to highlight unstated expertise.
+2. **Agent Opportunity Watchdog (Agent 2)**: Directly queries corporate Greenhouse and Lever ATS endpoints of top-tier AI organizations, identifying and alerting stealth job postings immediately upon publication.
+3. **Agent Tutor (Agent 3)**: Crawls scholarly engines (arXiv API) and developer codebases (GitHub APIs) for weekly trends. Compiles engineering blogs, architectures, and threat landscapes into a hyper-dense, pre-anchored markdown brief (`notebook_ingest_source.md`) optimized for Google NotebookLM's context-retrieval recall, sending out structured weekly upskilling resources.
+4. **Agent Mock Interviewer (Agent 4)**: Generates highly custom, difficulty-graded technical architecture and behavioral interview questions based on SQLite's weekly scanned themes and candidate resume bullets, evaluates performance, and logs evaluation scorecards.
+5. **Agent Portfolio Architect (Agent 5)**: Translates weekly trending technology stacks into a full **Test-Driven Development (TDD) workspace** containing a suite of failing unit, integration, and security `pytest` templates. The developer must make the tests pass, creating a robust, verifiable proof-of-work project published to their GitHub.
+
+---
+
+## ⚡ The 5 Strategic Pillars (Architecture Upgrades)
+
+CIE is engineered around five critical enterprise-ready technical principles:
+
+### Pillar 1: Stateless-Native Memory (Git-as-a-Database)
+Running 100% serverlessly in cron-based environments requires a stateless state-retention strategy. CIE implements a **Git-as-a-Database** model:
+- At startup, the orchestrator pulls the `state_history.json` index from an isolated, secure Git branch (`state-store`).
+- Runs relational SQLite synchronization, updating matching pipelines and ensuring zero context-drift between scheduled actions.
+- At exit, the orchestrator packages scanned matches, resume edits, and interview scores back to `state_history.json` and pushes commits securely to `state-store`.
+
+### Pillar 2: Proof-of-Work Scaffolding (TDD Workspaces)
+Instead of basic template scaffolding, Agent 5 analyzes target requirements to build complete, functional TDD environments. The generated repositories include complete testing configs (`pytest.ini`, `requirements.txt`) and failing test suites (`tests/test_*.py`) that challenge the developer to implement functional code to prove their expertise.
+
+### Pillar 3: NotebookLM Ingestion Compiler
+To address Google NotebookLM's lack of a public API, Agent 3 aggregates scientific papers, blog specs, and system architectures into a pre-structured, clean markdown file `notebook_ingest_source.md` featuring retrieval anchors (e.g. `[EXECUTIVE SUMMARY]`, `[SYSTEM DESIGN SCENARIOS]`). Users can drop this single file into their NotebookLM workspace for high-fidelity QA retrieval.
+
+### Pillar 4: LLMOps Observability & Tracing
+Eliminates "black box" agent executions by providing comprehensive observability tracing. The engine compiles execution stages, inputs, confidence scores, and tokens into a structured `gha_run_summary.md` that is written directly into the **GitHub Actions Run Summary** interface.
+
+### Pillar 5: Rebranding & Optimization
+Standardizes CIE for modern AI discovery with standard metadata specifications (`llms.txt` and `llms-full.txt` at the root) which enable seamless context loading for agentic coding tools like Claude Code, Cursor, and Copilot.
+
+---
 
 ## End-to-End System Workflow
 
-To visualize the interactions between the 5 specialized agents, relational database triggers, and deployment targets, refer to our comprehensive workflow diagram:
+To visualize the interactions between the 5 specialized agents, the Git-as-a-Database memory layer, relational triggers, and deployment targets, refer to our comprehensive workflow diagram:
 
 ```mermaid
 graph TD
     UI[onboard.py Wizard] -->|Bootstrap| SQLite[(SQLite Storage)]
     UI -->|Setup| GHA[GitHub Actions Cron]
+    
+    subgraph Git_Memory [Stateless-Native Memory Layer]
+        GitDB[(state-store Branch)] <-->|Git Database Sync| SQLite
+    end
+    
     GHA -->|Trigger Run| A1[Agent 1: Scraper & Tuner]
     GHA -->|Trigger Run| A2[Agent 2: Opportunity Watchdog]
     
     A1 -->|Log Scans| SQLite
-    A1 -->|Tune XML| Resume[Tailored Resume]
+    A1 -->|Tune XML w/ Reverse GitHub Loop| Resume[Tailored Resume]
     A2 -->|Direct ATS Scrapes| SQLite
     A2 -->|Alert User| Notify[Weekly Notifications]
     
     SQLite -->|Unmapped Trends| A3[Agent 3: Agent Tutor]
     A3 -->|arXiv & GitHub| Search[Research Scrapes]
-    A3 -->|Workspace setup| NotebookLM[NotebookLM / Gemini Cache]
-    NotebookLM -->|Synthesize Explainers| A3
-    A3 -->|Deliver Study Plan| Mail[SMTP Email]
+    A3 -->|Workspace compiler| Brief[notebook_ingest_source.md]
+    Brief -->|Ingest| NotebookLM[NotebookLM / Gemini Cache]
+    NotebookLM -->|Deliver Study Plan| Mail[SMTP Email]
     A3 -->|Log notebooks| SQLite
     
     SQLite -->|Target Skills & Resume| A4[Agent 4: Mock Interviewer]
@@ -42,7 +73,7 @@ graph TD
     A4 -->|Evaluation Scorecards| SQLite
     
     SQLite -->|Trending Stacks| A5[Agent 5: Portfolio Architect]
-    A5 -->|Scaffold Lab Template| Git[User GitHub Profile]
+    A5 -->|Scaffold TDD Workspace| Git[User GitHub Profile]
     A5 -->|Log Metadata| SQLite
 ```
 
@@ -69,7 +100,7 @@ For a comprehensive, high-fidelity mapping of all 8 core career preparation use 
 
 ## Status
 
-> **Fully Operational** — The multi-agent engine is production-ready, running serverless weekly cron cycles via GitHub Actions, persisted via SQLite, and integrated with live learning and evaluation loops. See [PITCH.md](PITCH.md) for the product vision and [DESIGN_HYBRID.md](DESIGN_HYBRID.md) for the architectural blueprint.
+> **Fully Operational & Memory-Enabled** — The multi-agent engine is production-ready, running serverless weekly cron cycles via GitHub Actions, persisted dynamically via Git-as-a-Database and SQLite, and integrated with live learning and TDD evaluation loops. See [PITCH.md](PITCH.md) for the product vision and [DESIGN_HYBRID.md](DESIGN_HYBRID.md) for the architectural blueprint.
 
 ---
 
@@ -94,7 +125,7 @@ python onboard.py
 > **Defensive UX Security**: Sensitive access keys (e.g. Gemini API Key, GitHub PAT, Dropbox Token) are written directly to a secure, git-ignored local `.env` file at your project root, preventing accidental commits while maintaining seamless developer access.
 
 ### 3. Execute the Ecosystem Main Loop
-To trigger a manual scan, resume updates, mock interviewer questions, upskilling packs, and programmatic GitHub scaffolding, run:
+To trigger a manual scan, resume updates, mock interviewer questions, upskilling packs, and TDD project scaffolding, run:
 ```bash
 python src/main.py
 ```
@@ -108,5 +139,6 @@ To run this multi-agent loop 100% serverless on a weekly or daily schedule:
    * `GITHUB_PAT`: GitHub personal access token with `repo` scopes to permit Agent Portfolio Architect to push scaffolds to your account.
    * `DROPBOX_ACCESS_TOKEN`: API token to sync relaid resumes and sqlite persistence vaults.
 4. Navigate to the **Actions** tab in your repository and enable the pre-configured workflow scheduler.
+
 
 

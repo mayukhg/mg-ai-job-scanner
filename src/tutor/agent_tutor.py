@@ -59,10 +59,13 @@ class AgentTutor:
                 # C. Ingest sources into Notebook
                 self.notebook_client.ingest_sources(notebook["notebook_id"], sources)
                 
-                # D. Generate Explainers (Audio, Mindmap, Video storyboard)
+                # D. Compile the brief
+                brief_path = self._compile_notebook_ingestion_brief(topic_name, sources)
+                
+                # E. Generate Explainers (Audio, Mindmap, Video storyboard)
                 assets = self.notebook_client.generate_multimedia_assets(notebook["notebook_id"], topic_name)
                 
-                # E. Persist learning workspace state to SQLite
+                # F. Persist learning workspace state to SQLite
                 self.db.record_notebook_generation(
                     topic_name=topic_name,
                     notebook_id=notebook["notebook_id"],
@@ -77,7 +80,8 @@ class AgentTutor:
                     "notebook_url": notebook["notebook_url"],
                     "audio_url": assets["audio_url"],
                     "mindmap": assets["mindmap"],
-                    "video_script": assets["video_script"]
+                    "video_script": assets["video_script"],
+                    "brief_path": str(brief_path)
                 })
                 
             except Exception as e:
@@ -88,6 +92,58 @@ class AgentTutor:
             self._dispatch_study_plan_email(week_identifier, created_assets)
             
         return created_assets
+
+    def _compile_notebook_ingestion_brief(self, topic_name: str, sources: List[Dict[str, Any]]) -> Path:
+        """
+        Compiles research sources, engineering blogs, and threat landscapes into a hyper-dense
+        markdown brief formatted with structural anchors to maximize NotebookLM retrieval efficiency.
+        """
+        logger.info(f"Compiling NotebookLM Ingestion Brief for '{topic_name}'...")
+        
+        project_root = Path(__file__).resolve().parent.parent.parent
+        briefs_dir = project_root / "data" / "tutor" / "briefs"
+        briefs_dir.mkdir(parents=True, exist_ok=True)
+        
+        semantic_key = self.db.generate_semantic_key(topic_name)
+        brief_path = briefs_dir / f"brief_{semantic_key}.md"
+        
+        brief_content = [
+            f"# Ingestion Source Brief: {topic_name}",
+            f"Generated: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            f"\n## [EXECUTIVE SUMMARY]",
+            f"This brief provides a foundational context sheet for continuous upskilling on **{topic_name}**.",
+            f"It integrates leading scientific insights and production-grade developer paradigms.",
+            f"\n## [CORE TECH STACK ANALYSIS]",
+            f"Focus Area: {topic_name}",
+            "Key Architectural Components:",
+            "- Decoupled orchestrators and specialized execution lanes.",
+            "- In-memory database persistence (SQLite schema models).",
+            "- Strict validation routines and error wrappers.",
+            f"\n## [SYSTEM DESIGN SCENARIOS]",
+            "When defending systems designed using this stack, developers must anticipate:",
+            "1. Token latency spikes under heavy recursive prompt iterations.",
+            "2. State schema misalignment across stateless/ephemeral serverless boundaries.",
+            "3. Credentials lifecycle leakage in untrusted CI pipelines.",
+            f"\n## [ACADEMIC & OPEN-SOURCE RESEARCH SOURCES]"
+        ]
+        
+        for idx, src in enumerate(sources):
+            brief_content.extend([
+                f"\n### Source {idx + 1}: {src['title']}",
+                f"- **Reference URL**: {src['url']}",
+                f"- **Insight Snippet**: {src['snippet']}"
+            ])
+            
+        brief_content.append("\n---\n*Pre-structured for optimal NotebookLM Context-Window QA Retrieval by CIE Agent Tutor.*")
+        
+        try:
+            with open(brief_path, 'w', encoding='utf-8') as f:
+                f.write("\n".join(brief_content))
+            logger.info(f"Successfully compiled anchored brief at: {brief_path.name}")
+        except Exception as e:
+            logger.error(f"Failed to write upskilling brief file: {e}")
+            
+        return brief_path
 
     def _dispatch_study_plan_email(self, week_identifier: str, assets: List[Dict[str, Any]]):
         """Builds SMTP delivery notifications for the compiled weekly study plan."""
@@ -104,6 +160,7 @@ class AgentTutor:
             body_lines.extend([
                 f"\n🎓 TOPIC: {item['topic']}",
                 f"🔗 STUDY NOTEBOOK: {item['notebook_url']}",
+                f"📄 INGESTION BRIEF (Local path): {item['brief_path']}",
                 f"🎙️ AUDIO OVERVIEW (Podcast): {item['audio_url']}",
                 f"📊 MERMAID MINDMAP DIAGRAM:\n{item['mindmap']}\n",
                 f"--------------------------------------------------------------------------------"
