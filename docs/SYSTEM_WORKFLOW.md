@@ -6,7 +6,9 @@ This document provides a highly detailed, technical blueprint of the **Career In
 
 ## 1. End-to-End System Workflow Diagram
 
-The following Mermaid.js diagram illustrates the complete execution pipeline, from interactive setup to automated code publishing:
+Below is the premium, high-fidelity visual asset displaying the reactive, event-driven A2A interaction flow, followed by the complete technical Mermaid.js diagram illustrating the execution pipeline:
+
+![Career Intelligence Engine A2A Infographic](a2a_infographic.png)
 
 ```mermaid
 graph TB
