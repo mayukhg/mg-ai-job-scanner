@@ -4,16 +4,18 @@ import logging
 from pathlib import Path
 from typing import List, Dict, Any
 from ..analyzer.trending import TrendStorageManager
+from ..analyzer.a2a_messaging import BaseAgent, AgentEventBus, AgentMessage
 
 logger = logging.getLogger("interviewer.mock")
 
-class AgentMockInterviewer:
+class AgentMockInterviewer(BaseAgent):
     """
     Agent Mock Interviewer (The Interview Coach) evaluates candidate readiness on trending skills.
     It compiles dynamic technical questions based on database trends and active resumes,
     stages simulated assessments, and stores formatted scorecards locally and in SQLite.
     """
-    def __init__(self, db_manager: TrendStorageManager, config: dict = None):
+    def __init__(self, db_manager: TrendStorageManager, event_bus: AgentEventBus, config: dict = None):
+        super().__init__("agent_mock_interviewer", event_bus)
         self.db = db_manager
         self.config = config or {}
         self.difficulty = self.config.get("interviewer", {}).get("default_difficulty", "hard")
@@ -124,3 +126,22 @@ class AgentMockInterviewer:
         
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write("\n".join(content))
+
+    def on_message(self, message: AgentMessage):
+        logger.info(f"[{self.agent_id}] Received A2A event: '{message.event_type}' from '{message.sender_id}'")
+        if message.event_type == "RESUME_TUNED_FOR_TARGET":
+            company = message.payload.get("company", "Target Company")
+            role = message.payload.get("role", "AI Product Manager")
+            import datetime
+            week_id = datetime.datetime.now().strftime("%Y-W%U")
+            
+            logger.info(f"[{self.agent_id}] REACTIVE TRIGGER: Initiating mock interview session for target company '{company}' (Role: '{role}') due to resume update...")
+            results = self.conduct_mock_interview(week_id, interview_type="system_design")
+            
+            if results["readiness_score"] < 9.0:
+                logger.info(f"[{self.agent_id}] Readiness score {results['readiness_score']}/10.0 is under target threshold. Emitting A2A upskilling trigger...")
+                self.send_message(
+                    recipient_id="agent_tutor",
+                    event_type="UPSKILLING_REQUIRED",
+                    payload={"topic": "LangGraph State Sync", "weak_areas": ["state restoration"]}
+                )

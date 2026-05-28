@@ -32,6 +32,37 @@ Standardized root configuration files (`llms.txt` and `llms-full.txt`) allow age
 
 ---
 
+## Reactive Agent-to-Agent (A2A) Messaging Architecture
+
+To transition the Career Intelligence Engine from a simple decoupled blackboard to a highly reactive system, CIE integrates an in-memory **A2A Messaging Topology** governed by three core class models in `src/analyzer/a2a_messaging.py`:
+
+### 1. `AgentMessage`
+An immutable data envelope representing an event exchanged between agents.
+- **Fields**:
+  - `message_id`: A unique string identifier (`msg_xxxxxxxx`).
+  - `event_type`: The routing key representing the event category (e.g. `RESUME_TUNED_FOR_TARGET`).
+  - `sender_id`: The identifier of the agent dispatching the envelope.
+  - `recipient_id`: The target recipient agent's ID (or `"broadcast"`).
+  - `payload`: A structured JSON-compatible dictionary carrying transaction-specific state.
+  - `timestamp`: ISO-8601 creation datetime string.
+
+### 2. `AgentEventBus`
+The central message broker responsible for routing envelopes dynamically.
+- **Methods**:
+  - `register_agent(agent: BaseAgent)`: Registers a physical agent instance for point-to-point routing.
+  - `subscribe(event_type: str, agent: BaseAgent)`: Subscribes an agent to broadcast channels.
+  - `send_direct(message: AgentMessage)`: Delivers an envelope directly to a specific target agent in-memory.
+  - `publish(message: AgentMessage)`: Dynamic pub/sub broadcast dispatching to all subscribed handlers (excluding the sender).
+
+### 3. `BaseAgent`
+An abstract base class equipping specialized agents with A2A communication endpoints.
+- **Interfaces**:
+  - `send_message(recipient_id, event_type, payload)`: Facilitates point-to-point direct dispatch.
+  - `publish_event(event_type, payload)`: Enqueues a broadcast message to the Event Bus.
+  - `on_message(message: AgentMessage)`: Abstract handler subclasses must implement to process incoming envelopes reactively.
+
+---
+
 ## Component Specifications
 
 ### 1. Job Scraper & In-Place Resume Tuner (Agent 1)

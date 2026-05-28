@@ -87,6 +87,10 @@ MODEL_NAME = "gemini-2.0-pro-exp"  # or "claude-3-5-sonnet"
   2. **Processing**: The orchestrator runs the multi-agent pipelines (Tuner, Watchdog, Tutor, Interviewer, Architect), recording active keywords, stealth JDs, TDD scaffolds, and mock scorecard paths to the SQLite relational schema.
   3. **Teardown Hook**: Upon successful completion of all stages, the manager switches the stateless GHA runner container's environment to the `state-store` branch, serializes the updated execution records back to `state_history.json`, commits the change, and pushes it back to the remote origin.
 
+### 6. Reactive A2A Messaging Broker (Agent Event Bus)
+* **Strategy**: Implements an in-memory pub/sub broker (`AgentEventBus`) executing point-to-point and broadcast routes inside GHA runtime.
+* **Advantage**: Transitioning the orchestrator from a synchronous procedural loop to an asynchronous event-driven model removes architectural tight-coupling. Agents (`BaseAgent` subclasses) communicate through decoupled data envelopes (`AgentMessage`), reactively triggering downstream tasks such as interview grading, arXiv learning, and Pytest TDD scaffolds.
+
 ---
 
 ## Tech Stack
@@ -99,6 +103,7 @@ MODEL_NAME = "gemini-2.0-pro-exp"  # or "claude-3-5-sonnet"
 | **Docx Editor** | `python-docx` (XML run mapping) | Bullet-by-bullet replacement, ensuring styling is completely unbroken. |
 | **Model Router** | LiteLLM or Direct API Wrappers | Swap between Google Gemini and Anthropic Claude via a single `.env` line. |
 | **Data Storage** | SQLite + JSON Weekly Snapshots | Portable DB easily uploaded to Dropbox and saved as GHA artifacts. |
+| **A2A Messenger** | Central `AgentEventBus` | Decouples orchestrator calls by establishing a reactive message-passing cascade loop. |
 
 ---
 
@@ -116,16 +121,37 @@ mg-ai-job-scanner/
 │   └── settings.yaml            ← Target locations, titles, and model selections
 │
 ├── src/
-│   ├── main.py                  ← Central orchestrator entry point
+│   ├── main.py                  ← Central orchestrator entry point & Event Bus init
+│   │
 │   ├── scraper/
 │   │   ├── __init__.py
-│   │   └── apify_client.py      ← Managed scraper interface (LinkedIn/Naukri)
+│   │   └── watchdog.py          ← Stealth ATS greenhouse/lever scraper agent
+│   │
 │   ├── analyzer/
 │   │   ├── __init__.py
-│   │   └── extraction.py        ← Structured weekly theme aggregator
+│   │   ├── a2a_messaging.py     ← Core AgentMessage, AgentEventBus, BaseAgent
+│   │   ├── git_database.py      ← Git-as-a-Database state manager
+│   │   ├── observability.py     ← LLMOps Trace Observability Step Summary
+│   │   └── trending.py          ← SQLite Persistence
+│   │
 │   ├── resume/
 │   │   ├── __init__.py
-│   │   └── inplace_editor.py    ← python-docx text node injector
+│   │   └── inplace_editor.py    ← python-docx text node injector tuner agent
+│   │
+│   ├── tutor/
+│   │   ├── __init__.py
+│   │   ├── agent_tutor.py       ← NotebookLM brief compiler tutor agent
+│   │   ├── source_extractor.py  ← arXiv & GitHub crawler
+│   │   └── notebooklm_client.py  ← Mock NotebookLM integrations
+│   │
+│   ├── interviewer/
+│   │   ├── __init__.py
+│   │   └── mock_interviewer.py  ← Dynamic mock interviewer coach agent
+│   │
+│   ├── portfolio/
+│   │   ├── __init__.py
+│   │   └── portfolio_architect.py ← Failing Pytest TDD project scaffolder agent
+│   │
 │   └── delivery/
 │       ├── __init__.py
 │       ├── oauth_helper.py      ← Secure OAuth2 refresh token exchanger
@@ -134,7 +160,9 @@ mg-ai-job-scanner/
 │
 ├── data/
 │   ├── base_resume/             ← Your immutable base template (Resume_Base.docx)
-│   └── store/                   ← Local SQLite / weekly cache (ignored in Git)
+│   ├── store/                   ← Local SQLite / weekly cache (ignored in Git)
+│   ├── tutor/                   ← Ingestion briefs (notebook_ingest_source.md)
+│   └── portfolio/               ← Locally scaffolded failing Pytest TDD projects
 │
 ├── DESIGN_HYBRID.md             ← This document
 ├── ARCHITECTURE_HYBRID.md       ← Diagrams for Hybrid flow

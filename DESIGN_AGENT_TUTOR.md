@@ -108,67 +108,48 @@ Designed to accept an interchangeable authentication wrapper to support two oper
 
 ---
 
-## 4. Execution Sequence
+## 4. Execution Sequence (Reactive A2A Trigger)
+
+Instead of a procedural sequence, Agent Tutor operates as a reactive `BaseAgent` subclass responding to `UPSKILLING_REQUIRED` events emitted from Agent Mock Interviewer:
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant G as GHA Cron / Local Runner
-    participant DB as SQLite (themes.db)
-    participant E as Source Extractor
-    participant N as NotebookLM Client (Gemini Cache)
-    participant D as Dropbox Cloud
-    participant M as Gmail SMTP MIME
+    participant EB as 🎛️ AgentEventBus
+    participant ATT as 🤖 Agent Tutor (agent_tutor)
+    participant E as 🕷️ Source Extractor
+    participant DB as 🗄️ SQLite Store
+    participant APA as 🤖 Portfolio Architect (agent_portfolio_architect)
 
-    G->>DB: Get unmapped trending topics for Week
-    DB-->>G: Returns list [Topic A, Topic B]
-    loop For each Topic
-        G->>DB: Check semantic_key in generated_notebooks
-        alt Topic Already Exists
-            DB-->>G: Skip (Deduplication True)
-        else Topic is New
-            DB-->>G: Proceed (Deduplication False)
-            G->>E: Extract academic PDFs, Github codebases
-            E-->>G: Returns text payloads & URL sources
-            G->>N: Create Notebook <<Topic-Date>> & Load Sources
-            N-->>G: Returns Notebook URL
-            G->>N: Generate Audio Explainer (Multimodal voice synthesis)
-            N-->>G: Returns Audio Binary
-            G->>N: Generate Mindmap & Video Script
-            N-->>G: Returns Mermaid string & markdown storyboard
-            G->>D: Upload Audio overview to /Explainers/
-            D-->>G: Returns Audio Dropbox Share URL
-            G->>DB: Insert record into generated_notebooks
-        end
-    end
-    G->>M: Send "Your Study Plan for the week"
-    M-->>G: Delivers Email containing links & maps
+    EB->>ATT: on_message(UPSKILLING_REQUIRED)
+    Note over ATT: Receives target topic (e.g. 'LangGraph State Sync')
+    ATT->>E: extract_sources('LangGraph State Sync')
+    E-->>ATT: Returns academic PDFs & GitHub README references
+    ATT->>ATT: _compile_notebook_ingestion_brief()
+    Note over ATT: Generates data/tutor/briefs/brief_*.md<br/>formatted with retrieval anchors
+    ATT->>ATT: Dispatch simulated upskilling email
+    ATT->>EB: send_message("agent_portfolio_architect", "UPSKILLING_BRIEF_COMPILED", payload)
+    EB->>APA: on_message(UPSKILLING_BRIEF_COMPILED)
 ```
 
 ---
 
-## 5. Future Agent Extensions
+## 5. Active Agent Integrations & Event-Driven Topology
 
-Aligned with Option 3's core design philosophy (stateless cloud containers, database persistence, and configuration-driven orchestration), the Career Intelligence Engine can be expanded with the following agents:
+In the fully production-grade **Career Intelligence Engine**, all agents have transitioned from isolated mock pipelines to active `BaseAgent` subclasses cooperating dynamically via the central `AgentEventBus`:
 
-### 5.1 Agent Mock Interviewer (The Interview Coach)
-* **Design Philosophy**: Stateless interactive session driver.
-* **Mechanism**:
-  1. Reads the latest weekly trending topic and your resume.
-  2. Queries Gemini to generate a JSON list of 5 high-fidelity technical and situational interview questions.
-  3. Spawns an interactive Terminal (or local text file input session) for responses.
-  4. Evaluates responses against model answers, logging scorecards to SQLite and Dropbox to track your interview readiness metrics.
+### 5.1 Agent Resume Tuner (`agent_resume_tuner`)
+* **Role**: Primary ingestion & XML bullet copywriter.
+* **A2A Interaction**: Scrapes candidate's GitHub footprint, logs trending weekly keywords to SQLite, and issues `RESUME_TUNED_FOR_TARGET` to the event bus to notify the Interview Coach.
 
-### 5.2 Agent Opportunity Watchdog (Stealth Job Scraper)
-* **Design Philosophy**: Direct ATS endpoint crawler.
-* **Mechanism**:
-  1. Periodically crawls corporate ATS systems (Greenhouse, Lever) for a curated shortlist of high-growth AI companies.
-  2. Bypasses broad aggregate job boards to identify stealth listings.
-  3. Cross-references open requirements with your profile to notify you of immediate high-probability applications.
+### 5.2 Agent Opportunity Watchdog (`agent_opportunity_watchdog`)
+* **Role**: Direct stealth ATS greenhouse/lever scraper.
+* **A2A Interaction**: Deduplicates discoveries against relational SQLite keys and broadcasts alerts on new opportunities.
 
-### 5.3 Agent Portfolio Architect (Project Suggestion Engine)
-* **Design Philosophy**: Modular codebase scaffolding.
-* **Mechanism**:
-  1. Identifies trending technical keywords (e.g., "SQLite GHA round-trip").
-  2. Translates the technical concept into a miniature open-source portfolio project specification.
-  3. Automatically scaffolds a code framework (creating `README.md`, testing directories, and structural python main templates) and pushes it to your GitHub portfolio under `mg-ai-job-scanner-labs/<<concept>>` to showcase proof-of-work to recruiters.
+### 5.3 Agent Mock Interviewer (`agent_mock_interviewer`)
+* **Role**: High-fidelity interview simulation & career coach.
+* **A2A Interaction**: Intercepts `RESUME_TUNED_FOR_TARGET` events, conducts dry runs, saves structured scorecards, and dispatches direct `UPSKILLING_REQUIRED` messages to Agent Tutor if readiness falls below `9.0/10.0`.
+
+### 5.4 Agent Portfolio Architect (`agent_portfolio_architect`)
+* **Role**: TDD project workspace scaffolder.
+* **A2A Interaction**: Intercepts `UPSKILLING_BRIEF_COMPILED` events, extracts tech stacks, constructs physical local Pytest workspaces containing failing test challenges (`tests/test_core.py`), and commits the workspace parameters to the relational SQLite catalog.

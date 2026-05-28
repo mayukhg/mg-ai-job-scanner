@@ -1,16 +1,18 @@
 import logging
 from typing import List, Dict, Any
 from ..analyzer.trending import TrendStorageManager
+from ..analyzer.a2a_messaging import BaseAgent, AgentEventBus, AgentMessage
 
 logger = logging.getLogger("scraper.watchdog")
 
-class AgentOpportunityWatchdog:
+class AgentOpportunityWatchdog(BaseAgent):
     """
     Agent Opportunity Watchdog (Stealth Job Scraper) programmatically monitors public-facing ATS
     endpoints (Greenhouse/Lever) of selected, high-growth AI target organizations.
     It bypasses aggregate feeds, compares entries against sqlite indexing, and saves fresh items.
     """
-    def __init__(self, db_manager: TrendStorageManager, config: dict = None):
+    def __init__(self, db_manager: TrendStorageManager, event_bus: AgentEventBus, config: dict = None):
+        super().__init__("agent_opportunity_watchdog", event_bus)
         self.db = db_manager
         self.config = config or {}
         self.target_companies = self.config.get("watchdog", {}).get(
@@ -76,3 +78,6 @@ class AgentOpportunityWatchdog:
                 "provider": "greenhouse"
             }
         ]
+
+    def on_message(self, message: AgentMessage):
+        logger.info(f"[{self.agent_id}] Received A2A event: '{message.event_type}' from '{message.sender_id}'")

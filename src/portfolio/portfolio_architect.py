@@ -2,16 +2,18 @@ import logging
 from pathlib import Path
 from typing import List, Dict, Any
 from ..analyzer.trending import TrendStorageManager
+from ..analyzer.a2a_messaging import BaseAgent, AgentEventBus, AgentMessage
 
 logger = logging.getLogger("portfolio.architect")
 
-class AgentPortfolioArchitect:
+class AgentPortfolioArchitect(BaseAgent):
     """
     Agent Portfolio Architect (Project Scaffolder) translates trending market technologies
     into structured, functional open-source proof-of-concept repositories on GitHub.
     It builds layouts, templates, README files, test suites, and actions configs.
     """
-    def __init__(self, db_manager: TrendStorageManager, config: dict = None):
+    def __init__(self, db_manager: TrendStorageManager, event_bus: AgentEventBus, config: dict = None):
+        super().__init__("agent_portfolio_architect", event_bus)
         self.db = db_manager
         self.config = config or {}
         self.base_dir = Path(self.config.get("portfolio", {}).get(
@@ -250,4 +252,15 @@ class AgentPortfolioArchitect:
         ]
         with open(project_dir / ".github" / "workflows" / "ci.yml", 'w', encoding='utf-8') as f:
             f.write("\n".join(content))
+
+    def on_message(self, message: AgentMessage):
+        logger.info(f"[{self.agent_id}] Received A2A event: '{message.event_type}' from '{message.sender_id}'")
+        if message.event_type == "UPSKILLING_BRIEF_COMPILED":
+            topic = message.payload.get("topic")
+            import datetime
+            week_id = datetime.datetime.now().strftime("%Y-W%U")
+            
+            logger.info(f"[{self.agent_id}] REACTIVE TRIGGER: Scaffolding Pytest TDD project workspace for upskilling topic: '{topic}'...")
+            scaffold_meta = self.scaffold_trending_project(week_id)
+            logger.info(f"[{self.agent_id}] Reactive TDD workspace successfully generated: {scaffold_meta['github_repo_url']}")
 

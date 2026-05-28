@@ -53,26 +53,34 @@ graph TD
         GitDB[(state-store Branch)] <-->|Git Database Sync| SQLite
     end
     
-    GHA -->|Trigger Run| A1[Agent 1: Scraper & Tuner]
-    GHA -->|Trigger Run| A2[Agent 2: Opportunity Watchdog]
+    subgraph Event_Bus [A2A Communication Layer]
+        Bus([AgentEventBus])
+    end
+
+    GHA -->|1 · Trigger Run| A1[Agent 1: Scraper & Tuner]
+    GHA -->|Trigger Watchdog| A2[Agent 2: Opportunity Watchdog]
     
     A1 -->|Log Scans| SQLite
-    A1 -->|Tune XML w/ Reverse GitHub Loop| Resume[Tailored Resume]
+    A1 -->|2 · Tune CV w/ GitHub Reverse Loop| Resume[Tailored Resume]
+    A1 -->|3 · Emit RESUME_TUNED_FOR_TARGET| Bus
+    
     A2 -->|Direct ATS Scrapes| SQLite
     A2 -->|Alert User| Notify[Weekly Notifications]
     
-    SQLite -->|Unmapped Trends| A3[Agent 3: Agent Tutor]
+    Bus -->|4 · Direct Route| A4[Agent 4: Mock Interviewer]
+    A4 -->|System Design Questions| A4
+    A4 -->|5 · Emit UPSKILLING_REQUIRED| Bus
+    A4 -->|Evaluation Scorecards| SQLite
+    
+    Bus -->|6 · Direct Route| A3[Agent 3: Agent Tutor]
     A3 -->|arXiv & GitHub| Search[Research Scrapes]
     A3 -->|Workspace compiler| Brief[notebook_ingest_source.md]
     Brief -->|Ingest| NotebookLM[NotebookLM / Gemini Cache]
     NotebookLM -->|Deliver Study Plan| Mail[SMTP Email]
+    A3 -->|7 · Emit UPSKILLING_BRIEF_COMPILED| Bus
     A3 -->|Log notebooks| SQLite
     
-    SQLite -->|Target Skills & Resume| A4[Agent 4: Mock Interviewer]
-    A4 -->|System Design Questions| A4
-    A4 -->|Evaluation Scorecards| SQLite
-    
-    SQLite -->|Trending Stacks| A5[Agent 5: Portfolio Architect]
+    Bus -->|8 · Direct Route| A5[Agent 5: Portfolio Architect]
     A5 -->|Scaffold TDD Workspace| Git[User GitHub Profile]
     A5 -->|Log Metadata| SQLite
 ```

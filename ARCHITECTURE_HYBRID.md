@@ -13,13 +13,15 @@ flowchart TD
         ORCH[main.py Orchestrator]
         
         subgraph MODULES["Modular Python Modules (src/)"]
-            M_SCRAPE[scraper/apify_client.py]
-            M_ANAL[analyzer/extraction.py]
+            M_SCRAPE[scraper/watchdog.py]
+            M_A2A[analyzer/a2a_messaging.py]
             M_RES[resume/inplace_editor.py]
-            M_DEL[delivery/oauth_helper.py]
+            M_TUTOR[tutor/agent_tutor.py]
+            M_INTER[interviewer/mock_interviewer.py]
+            M_PORT[portfolio/portfolio_architect.py]
         end
         
-        ORCH --> M_SCRAPE & M_ANAL & M_RES & M_DEL
+        ORCH --> M_SCRAPE & M_A2A & M_RES & M_TUTOR & M_INTER & M_PORT
     end
 
     subgraph SERVICES["External Managed APIs"]
@@ -30,10 +32,9 @@ flowchart TD
     end
 
     M_SCRAPE --> APIFY
-    M_ANAL --> LLM
+    M_A2A --> LLM
     M_RES --> LLM
-    M_DEL --> |Auto-Refresh OAuth| DROPBOX
-    M_DEL --> |Auto-Refresh OAuth| GMAIL
+    M_TUTOR --> LLM
 
     classDef trigger fill:#f5a623,color:#000,font-weight:bold
 ```
@@ -91,49 +92,42 @@ flowchart TD
 
 ---
 
-## 4. Sequence Flow
+## 4. Sequence Flow (Reactive Event Bus Cascade)
 
 ```mermaid
 sequenceDiagram
     participant GHA as ☁️ GitHub Actions Cron
     participant PY as 🐍 main.py Orchestrator
-    participant AP as 🕷 Apify API
-    participant LL as 🧠 LLM Router (Claude/Gemini)
-    participant OATH as 🔑 OAuth Helper (Refresh Token)
-    participant DB as ☁️ Dropbox SDK
-    participant GM as 📧 Gmail SMTP
+    participant EB as 🎛️ AgentEventBus
+    participant ATN as 🤖 Tuner Agent
+    participant AMC as 🤖 Mock Interviewer Agent
+    participant ATT as 🤖 Tutor Agent
+    participant APA as 🤖 Portfolio Agent
 
     GHA->>PY: Execute (Monday 8AM IST)
+    PY->>PY: Git-as-a-Database: Seed local SQLite from state_history.json
+    PY->>EB: Instantiate AgentEventBus
+    PY->>EB: Register Tuner, Watchdog, Tutor, Interviewer, Portfolio agents
+    PY->>EB: Subscribe agents to target routing keys
     
-    PY->>AP: run_actor(pune_jobs_scraper)
-    AP-->>PY: raw_job_descriptions[]
+    PY->>ATN: tune_resume() [Initial Trigger]
+    Note over ATN: Tunes resume & commits trend keys to SQLite
+    
+    ATN->>EB: send_message("agent_mock_interviewer", "RESUME_TUNED_FOR_TARGET", payload)
+    EB->>AMC: on_message(RESUME_TUNED_FOR_TARGET)
+    
+    Note over AMC: Simulates system-design interview session<br/>Scorecard readiness rating < 9.0/10.0
+    AMC->>EB: send_message("agent_tutor", "UPSKILLING_REQUIRED", payload)
+    EB->>ATT: on_message(UPSKILLING_REQUIRED)
 
-    PY->>LL: analyze_and_extract_themes(raw_descriptions)
-    LL-->>PY: structured_theme_map{skills, responsibilities}
+    Note over ATT: Crawls arXiv papers & technical specs<br/>Compiles anchored NotebookLM brief
+    ATT->>EB: send_message("agent_portfolio_architect", "UPSKILLING_BRIEF_COMPILED", payload)
+    EB->>APA: on_message(UPSKILLING_BRIEF_COMPILED)
 
-    PY->>OATH: refresh_access_tokens(secrets)
-    OATH-->>PY: Dropbox & Gmail fresh_access_tokens
-
-    PY->>GIT: git fetch origin state-store (pull memory)
-    GIT-->>PY: state_history.json downloaded
-
-    PY->>DB: download(base_resume.docx)
-    DB-->>PY: base_resume.docx (binary)
-
-    PY->>LL: rewrite_docx_paragraphs(base_resume, theme_map)
-    LL-->>PY: updated_docx_binary
-
-    PY->>DB: upload(Resume_WeekOf_DATE.docx, fresh_token)
-    DB-->>PY: shared_link
-
-    PY->>PY: Scaffold Pytest TDD project & compile NotebookLM briefs
-
-    PY->>GIT: git checkout state-store && git commit state_history.json && git push origin (push memory)
-    GIT-->>PY: push completed ✓
-
-    PY->>GM: send_smtp_email(to, subject, body_summary, attachment, fresh_token)
-    GM-->>PY: email sent successfully
-
+    Note over APA: Scaffolds complete Pytest TDD project workspace
+    
+    PY->>PY: Observability: Compile gha_run_summary.md
+    PY->>PY: Git-as-a-Database: Serialize & commit state_history.json to state-store branch
 ```
 
 ---

@@ -4,12 +4,13 @@ from pathlib import Path
 from typing import List, Dict, Any
 
 from ..analyzer.trending import TrendStorageManager
+from ..analyzer.a2a_messaging import BaseAgent, AgentEventBus, AgentMessage
 from .source_extractor import SourceExtractor
 from .notebooklm_client import NotebookLMClient
 
 logger = logging.getLogger("tutor.agent")
 
-class AgentTutor:
+class AgentTutor(BaseAgent):
     """
     Agent Tutor coordinates the continuous upskilling workflow:
     1. Detects new weekly trending topics registered in SQLite.
@@ -21,9 +22,11 @@ class AgentTutor:
     def __init__(
         self, 
         storage_manager: TrendStorageManager,
+        event_bus: AgentEventBus,
         notebook_client: NotebookLMClient = None,
         source_extractor: SourceExtractor = None
     ):
+        super().__init__("agent_tutor", event_bus)
         self.db = storage_manager
         self.notebook_client = notebook_client or NotebookLMClient()
         self.extractor = source_extractor or SourceExtractor()
@@ -169,3 +172,23 @@ class AgentTutor:
         body_lines.append("\nKeep learning, keep engineering!\n— Agent Tutor")
         logger.info("Successfully simulated upskilling email dispatch.")
         logger.debug("\n".join(body_lines))
+
+    def on_message(self, message: AgentMessage):
+        logger.info(f"[{self.agent_id}] Received A2A event: '{message.event_type}' from '{message.sender_id}'")
+        if message.event_type == "UPSKILLING_REQUIRED":
+            topic = message.payload.get("topic")
+            logger.info(f"[{self.agent_id}] REACTIVE TRIGGER: Compiling upskilling brief for target topic: '{topic}' due to assessment score...")
+            
+            try:
+                sources = self.extractor.extract_sources(topic)
+                brief_path = self._compile_notebook_ingestion_brief(topic, sources)
+                logger.info(f"[{self.agent_id}] Reactive brief successfully generated at: {brief_path.name}")
+                
+                # Direct message to Portfolio Architect to build TDD workspace
+                self.send_message(
+                    recipient_id="agent_portfolio_architect",
+                    event_type="UPSKILLING_BRIEF_COMPILED",
+                    payload={"topic": topic, "brief_path": str(brief_path)}
+                )
+            except Exception as e:
+                logger.error(f"[{self.agent_id}] Failed reactive upskilling: {e}")

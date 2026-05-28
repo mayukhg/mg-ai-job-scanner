@@ -154,8 +154,8 @@ To build a robust agentic system, a Product Manager must evaluate multiple archi
 * **Cons**: Local scheduling fails if the machine goes to sleep; local Playwright scrapers get blocked instantly by Indian job boards with dynamic anti-bot protection (Cloudflare, Naukri); community MCP servers suffer from fragile dependency updates and OAuth version drift.
 
 ### Option 3: The Hybrid Cloud Orchestrator (Winner)
-* **Concept**: A serverless GitHub Actions runner executing a modular, config-driven Python engine. It pairs managed scrapers (Apify) with direct OAuth helpers and in-place document editing.
-* **Pros**: 100% free cloud uptime; anti-bot defense handled by rotating proxies; swappable models (Claude/Gemini) through a single configuration key; Git-as-a-Database state branch persistence for stateless memory; XML run paragraph injection protecting typography and layout.
+* **Concept**: A serverless GitHub Actions runner executing a modular, config-driven Python engine that coordinates agents via a centralized, in-memory **Reactive Agent-to-Agent (A2A) Event Bus**. It pairs managed scrapers (Apify) with direct OAuth helpers and in-place document editing.
+* **Pros**: 100% free cloud uptime; anti-bot defense handled by rotating proxies; swappable models (Claude/Gemini) through a single configuration key; **Reactive A2A Event Bus** that routes point-to-point and broadcast message envelopes (`AgentMessage`) dynamically in memory; Git-as-a-Database state branch persistence for stateless memory; XML run paragraph injection protecting typography and layout.
 * **Cons**: Requires active management of secure tokens via repository secrets.
 
 ---

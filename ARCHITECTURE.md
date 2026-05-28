@@ -109,7 +109,40 @@ flowchart TD
 
 ---
 
-## 5. Folder Architecture
+## 5. Reactive A2A Messaging Cascade Flow
+
+CIE coordinates agents in-memory via the `AgentEventBus` to run a reactive event-driven cascade loop:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant ETB as 🎛️ AgentEventBus
+    participant ATN as 🤖 AgentResumeTuner
+    participant AMC as 🤖 AgentMockInterviewer
+    participant ATT as 🤖 AgentTutor
+    participant APA as 🤖 AgentPortfolioArchitect
+
+    Note over ATN, APA: All agents register to AgentEventBus at startup
+
+    Note over ATN: Executes reverse GitHub ingestion<br/>& tunes resume bullets in-place
+    ATN->>ETB: send_message(recipient="agent_mock_interviewer", event="RESUME_TUNED_FOR_TARGET")
+    ETB->>AMC: on_message(RESUME_TUNED_FOR_TARGET)
+    
+    Note over AMC: Conducts simulated system design interview<br/>evaluating candidate on trending skills
+    Note over AMC: Scorecard readiness graded < 9.0/10.0
+    AMC->>ETB: send_message(recipient="agent_tutor", event="UPSKILLING_REQUIRED")
+    ETB->>ATT: on_message(UPSKILLING_REQUIRED)
+
+    Note over ATT: Crawls arXiv papers & technical specs<br/>Compiles anchored NotebookLM brief
+    ATT->>ETB: send_message(recipient="agent_portfolio_architect", event="UPSKILLING_BRIEF_COMPILED")
+    ETB->>APA: on_message(UPSKILLING_BRIEF_COMPILED)
+
+    Note over APA: Scaffolds a complete TDD Pytest environment<br/>containing failing unit/security assertions
+```
+
+---
+
+## 6. Folder Architecture
 
 ```
 mg-ai-job-scanner/
@@ -141,7 +174,8 @@ mg-ai-job-scanner/
 │   ├── analyzer/
 │   │   ├── trending.py          ← SQLite Persistence
 │   │   ├── git_database.py      ← Git-as-a-Database
-│   │   └── observability.py     ← LLMOps Trace Observability
+│   │   ├── observability.py     ← LLMOps Trace Observability
+│   │   └── a2a_messaging.py     ← Reactive Agent Event Bus & BaseAgent
 │   │
 │   ├── tutor/
 │   │   ├── agent_tutor.py       ← Upskilling brief compiler
